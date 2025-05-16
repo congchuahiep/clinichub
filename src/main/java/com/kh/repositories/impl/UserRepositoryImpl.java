@@ -4,17 +4,23 @@
  */
 package com.kh.repositories.impl;
 
-import com.kh.pojo.User;
-import com.kh.repositories.AbstractRepository;
-import com.kh.repositories.UserRepository;
-import org.hibernate.query.Query;
 import java.util.List;
+
 import org.hibernate.Session;
+import org.hibernate.query.Query;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import com.kh.exceptions.EmailAlreadyExistsException;
+import com.kh.exceptions.UsernameAlreadyExistsException;
+import com.kh.pojo.User;
+import com.kh.repositories.AbstractRepository;
+import com.kh.repositories.UserRepository;
+
+import jakarta.persistence.NoResultException;
 
 /**
  *
@@ -24,11 +30,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 @Transactional
 public class UserRepositoryImpl extends AbstractRepository implements UserRepository {
 
-    private BCryptPasswordEncoder passwordEncoder;
-
-    public UserRepositoryImpl(LocalSessionFactoryBean factory, BCryptPasswordEncoder passwordEncoder) {
+    public UserRepositoryImpl(LocalSessionFactoryBean factory) {
         this.factory = factory;
-        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
@@ -40,27 +43,50 @@ public class UserRepositoryImpl extends AbstractRepository implements UserReposi
         return q.getResultList();
     }
 
+    /**
+     * Lấy đối tượng User từ cơ sở dữ liệu bằng username
+     * 
+     * @param username - Tên người dùng
+     * @return Người dùng khớp với tên người dùng
+     * @throws UsernameNotFoundException Nếu như người dùng không tồn tại
+     */
     @Override
     public User getUserByUsername(String username) {
         Session session = getCurrentSession();
         Query<User> query = session.createNamedQuery("User.findByUsername", User.class);
         query.setParameter("username", username);
 
-        return (User) query.getSingleResult();
+        try {
+            return (User) query.getSingleResult();
+        } catch (NoResultException e) {
+            throw new BadCredentialsException("Tài khoản hoặc mật khẩu không chính xác!");
+        }
     }
 
+    /**
+     * Thêm đối tượng User dùng vào cơ sở dữ liệu
+     * 
+     * @param user - Đối tượng user cần thêm
+     * @return Đối tượng user mới được tạo và lưu dưới cơ sở dữ liệu
+     */
     @Override
     public User addUser(User user) {
         Session session = getCurrentSession();
+
+        Query<User> usernameQuery = session.createQuery("FROM User WHERE username = :username", User.class);
+        usernameQuery.setParameter("username", user.getUsername());
+        if (!usernameQuery.getResultList().isEmpty()) {
+            throw new UsernameAlreadyExistsException("Username này đã có người khác sử dụng!");
+        }
+
+        Query<User> emailQuery = session.createQuery("FROM User WHERE email = :email", User.class);
+        emailQuery.setParameter("email", user.getEmail());
+        if (!emailQuery.getResultList().isEmpty()) {
+            throw new EmailAlreadyExistsException("Email này đã có người khác sử dụng!");
+        }
+
         session.persist(user);
 
         return user;
-    }
-
-    @Override
-    public boolean authenticate(String username, String password) {
-        User u = this.getUserByUsername(username);
-
-        return this.passwordEncoder.matches(password, u.getPassword());
     }
 }

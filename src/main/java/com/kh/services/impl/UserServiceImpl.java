@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,7 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
-import com.kh.dtos.PatientRegisterDTO;
+import com.kh.dtos.UserDTO;
 import com.kh.enums.UserRole;
 import com.kh.pojo.User;
 import com.kh.repositories.UserRepository;
@@ -34,7 +35,13 @@ public class UserServiceImpl implements UserService {
     private Cloudinary cloudinary;
 
     public boolean authenticate(String username, String password) {
-        return this.userRepository.authenticate(username, password);
+        User u = this.userRepository.getUserByUsername(username);
+
+        if (!this.passwordEncoder.matches(password, u.getPassword())) {
+            throw new BadCredentialsException("Tài khoản hoặc mật khẩu không chính xác!");
+        }
+
+        return true;
     }
 
     /**
@@ -69,23 +76,28 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public PatientRegisterDTO addPatientUser(PatientRegisterDTO patientData) {
+    public UserDTO addPatientUser(UserDTO patientDTO) {
+
+        if (!patientDTO.getPassword().equals(patientDTO.getConfirmPassword())) {
+            throw new RuntimeException("Mật khẩu xác nhận không khớp với mật khẩu của bạn!");
+        }
+
         User patient = new User();
 
         patient.setRole(UserRole.PATIENT);
 
-        patient.setUsername(patientData.getUsername());
-        patient.setPassword(this.passwordEncoder.encode(patientData.getPassword()));
+        patient.setUsername(patientDTO.getUsername());
+        patient.setPassword(this.passwordEncoder.encode(patientDTO.getPassword()));
 
-        patient.setFirstName(patientData.getFirstName());
-        patient.setLastName(patientData.getLastName());
-        patient.setEmail(patientData.getEmail());
-        patient.setPhone(patientData.getPhone());
-        patient.setAddress(patientData.getAddress());
-        patient.setBirthDate(patientData.getBirthDate());
-        patient.setGender(patientData.getGender());
+        patient.setFirstName(patientDTO.getFirstName());
+        patient.setLastName(patientDTO.getLastName());
+        patient.setEmail(patientDTO.getEmail());
+        patient.setPhone(patientDTO.getPhone());
+        patient.setAddress(patientDTO.getAddress());
+        patient.setBirthDate(patientDTO.getBirthDate());
+        patient.setGender(patientDTO.getGender());
 
-        MultipartFile avatar = patientData.getAvatarUpload();
+        MultipartFile avatar = patientDTO.getAvatarUpload();
 
         // Xử lý đăng tải ảnh lên cloudinary và lấy đường link đã được đăng tải gắn vào
         // avatar người dùng
@@ -101,15 +113,23 @@ public class UserServiceImpl implements UserService {
                     patient.setAvatar(secureUrl.toString());
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new RuntimeException("Không gửi được ảnh: " + e.getMessage()); // Quăng ngoại lệ nếu không lưu ảnh
+                                                                                     // được
             }
         }
 
         // TIẾN HÀNH LƯU USER VÀO TRONG DATABASE
         User savedUser = this.userRepository.addUser(patient);
 
-        patientData.setAvatar(savedUser.getAvatar());
+        patientDTO.setAvatar(savedUser.getAvatar());
 
-        return patientData;
+        return patientDTO;
+    }
+
+    @Override
+    public UserDTO getUserByUsername(String username) {
+        User user = this.userRepository.getUserByUsername(username);
+
+        return new UserDTO(user.getUsername(), user.getPassword());
     }
 }

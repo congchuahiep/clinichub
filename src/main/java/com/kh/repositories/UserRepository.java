@@ -17,6 +17,4 @@ public interface UserRepository {
     User getUserByUsername(String username);
 
     User addUser(User user);
-
-    boolean authenticate(String username, String password);
 }

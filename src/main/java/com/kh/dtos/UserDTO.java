@@ -4,7 +4,9 @@ import java.sql.Date;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.kh.pojo.User;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -30,7 +32,7 @@ import jakarta.validation.constraints.Size;
  * <li>{@code avatar}: MultipartFile - ảnh đại diện (không bắt buộc)</li>
  * </ul>
  */
-public class PatientRegisterDTO {
+public class UserDTO {
 
     // ATTRIBUTE
 
@@ -40,6 +42,10 @@ public class PatientRegisterDTO {
     @NotBlank
     @JsonIgnore
     private String password;
+
+    @NotBlank
+    @JsonIgnore
+    private String confirmPassword;
 
     @Email
     @NotBlank
@@ -56,6 +62,7 @@ public class PatientRegisterDTO {
     private String lastName;
 
     @NotNull
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     private Date birthDate;
 
     @NotBlank
@@ -67,6 +74,29 @@ public class PatientRegisterDTO {
     private MultipartFile avatarUpload; // Không bắt buộc
 
     private String avatar; // Người dùng không tự động cập nhật được, tự động tạo khi có avatarUpload
+
+    // CONSTRUCTOR
+
+    public UserDTO() {
+
+    }
+
+    public UserDTO(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
+
+    public UserDTO(User user) {
+        this.username = user.getUsername();
+        this.email = user.getEmail();
+        this.phone = user.getPhone();
+        this.firstName = user.getFirstName();
+        this.lastName = user.getLastName();
+        this.birthDate = (Date) user.getBirthDate();
+        this.gender = user.getGender();
+        this.address = user.getAddress();
+        this.avatar = user.getAvatar();
+    }
 
     // GETTER/SETTER
 
@@ -156,6 +186,14 @@ public class PatientRegisterDTO {
 
     public void setAvatar(String avatar) {
         this.avatar = avatar;
+    }
+
+    public String getConfirmPassword() {
+        return confirmPassword;
+    }
+
+    public void setConfirmPassword(String confirmPassword) {
+        this.confirmPassword = confirmPassword;
     }
 
 }

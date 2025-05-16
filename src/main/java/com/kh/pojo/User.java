@@ -27,6 +27,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
 
+import org.hibernate.annotations.ColumnTransformer;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -76,7 +77,6 @@ public class User implements Serializable {
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 255)
-    @JsonIgnore
     @Column(name = "password")
     private String password;
 
@@ -92,6 +92,7 @@ public class User implements Serializable {
     private String phone;
 
     @Enumerated(EnumType.STRING)
+    @ColumnTransformer(read = "UPPER(role)", write = "LOWER(?)")
     @Column(name = "role")
     private UserRole role;
 

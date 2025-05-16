@@ -1,6 +1,5 @@
 package com.kh.configs;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -12,11 +11,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
-import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
-
-import org.springframework.core.env.Environment;
-
 @Configuration
 @EnableWebSecurity
 @EnableTransactionManagement
@@ -27,9 +21,6 @@ import org.springframework.core.env.Environment;
 })
 @PropertySource("classpath:cloudinary.properties")
 public class SecurityConfigs {
-
-    @Autowired
-    private Environment env;
 
     /**
      * Khởi tạo Bean bCryptPasswordEncoder
@@ -44,22 +35,6 @@ public class SecurityConfigs {
         return new HandlerMappingIntrospector();
     }
 
-    @Bean
-    public Cloudinary cloudinary() {
-        Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
-                "cloud_name", env.getProperty("cloudinary.cloudName"),
-                "api_key", env.getProperty("cloudinary.apiKey"),
-                "api_secret", env.getProperty("cloudinary.apiSecret"),
-                "secure", true));
-
-        return cloudinary;
-    }
-
-    @Bean
-    public jakarta.validation.Validator validator() {
-        return new org.springframework.validation.beanvalidation.LocalValidatorFactoryBean();
-    }
-
     /**
      * Bean này chịu trách nhiệm định nghĩa chuỗi các bộ lọc bảo mật (security
      * filters) sẽ được áp dụng cho các yêu cầu HTTP đến ứng dụng
@@ -67,7 +42,7 @@ public class SecurityConfigs {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Tắt cấu hình csrf
+                // Tắt cấu hình csrf (Cấu hình này ngăn chặn request từ domain khác)
                 .csrf(c -> c.disable())
 
                 // Cấu hình yêu cầu xác thực khi truy cập endpoints

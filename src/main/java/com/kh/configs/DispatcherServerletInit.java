@@ -4,8 +4,13 @@
  */
 package com.kh.configs;
 
+
+import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
+import com.kh.filters.JwtFilter;
+
+import jakarta.servlet.Filter;
 import jakarta.servlet.MultipartConfigElement;
 import jakarta.servlet.ServletRegistration;
 
@@ -25,7 +30,8 @@ public class DispatcherServerletInit extends AbstractAnnotationConfigDispatcherS
         return new Class[] {
                 ThymeleafConfig.class, // Cấu hình thymeleaf
                 HibernateConfigs.class, // Cấu hình Hibernate
-                SecurityConfigs.class // Cấu hình Spring boot Security
+                SecurityConfigs.class, // Cấu hình Spring boot Security
+                UtilsConfig.class // Cấu hình các bean tiện ích
         };
     }
 
@@ -51,7 +57,7 @@ public class DispatcherServerletInit extends AbstractAnnotationConfigDispatcherS
     protected void customizeRegistration(ServletRegistration.Dynamic registration) {
         String location = "/";
         long maxFileSize = 5242880; // Tổng dung lượng của một file: 5MB
-        long maxRequestSize = 20971520; // Tổng dung lượng của một request: 20MB 
+        long maxRequestSize = 20971520; // Tổng dung lượng của một request: 20MB
         int fileSizeThreshold = 0;
 
         registration.setMultipartConfig(new MultipartConfigElement(
@@ -69,8 +75,16 @@ public class DispatcherServerletInit extends AbstractAnnotationConfigDispatcherS
      *         đến ứng dụng
      */
     @Override
+    @NonNull
     protected String[] getServletMappings() {
         return new String[] { "/" };
     }
 
+    /**
+     * Khởi tạo các lớp filter
+     */
+    @Override
+    protected Filter[] getServletFilters() {
+        return new Filter[] { new JwtFilter() }; // Filter sẽ áp dụng cho mọi request
+    }
 }
