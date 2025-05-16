@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence version="3.0" xmlns="https://jakarta.ee/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd">
+  <!-- Define Persistence Unit -->
+  <persistence-unit name="my_persistence_unit">
+    <class>com.kh.pojo.User</class>
+    <class>com.kh.pojo.Patient</class>
+    <class>com.kh.pojo.Review</class>
+    <class>com.kh.pojo.Notification</class>
+    <class>com.kh.pojo.Payment</class>
+    <class>com.kh.pojo.Reply</class>
+    <class>com.kh.pojo.Message</class>
+    <class>com.kh.pojo.Medicalrecord</class>
+    <class>com.kh.pojo.Bill</class>
+    <class>com.kh.pojo.Admin</class>
+    <class>com.kh.pojo.Medicalschedule</class>
+    <class>com.kh.pojo.Hospital</class>
+    <class>com.kh.pojo.Conversation</class>
+    <class>com.kh.pojo.Doctor</class>
+    <class>com.kh.clinichub.Main</class>
+    <class>com.kh.pojo.Notifications</class>
+    <class>com.kh.pojo.Conversations</class>
+    <class>com.kh.pojo.Diseases</class>
+    <class>com.kh.pojo.Specialties</class>
+    <class>com.kh.pojo.ChatMessages</class>
+    <class>com.kh.pojo.MedicalRecords</class>
+    <class>com.kh.pojo.Reviews</class>
+    <class>com.kh.pojo.Payments</class>
+    <class>com.kh.pojo.HealthRecords</class>
+    <class>com.kh.pojo.Users</class>
+    <class>com.kh.pojo.Appointments</class>
+    <class>com.kh.pojo.Hospitals</class>
+    <class>com.kh.pojo.DoctorLicenses</class>
+    <class>com.kh.pojo.MedicalRecord</class>
+    <class>com.kh.pojo.Disease</class>
+    <class>com.kh.pojo.DoctorLicense</class>
+    <class>com.kh.pojo.Specialty</class>
+    <class>com.kh.pojo.HealthRecord</class>
+    <class>com.kh.pojo.ChatMessage</class>
+    <class>com.kh.pojo.Appointment</class>
+  </persistence-unit>
+</persistence>

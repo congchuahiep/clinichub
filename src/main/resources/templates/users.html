@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Dep trai</title>
+    <th:block th:replace="base :: styles"></th:block>
+</head>
+<body>
+
+<main><table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>username</th>
+                <th>mail</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="u:${users}">
+                <td th:text="${u.id}"></td>
+                <td th:text="${u.username}"></td>
+                <td th:text="${u.email}"></td>
+            </tr>
+        </tbody>
+    </table>
+</main>
+
+<th:block th:replace="base :: footer"></th:block>
+</body>
+</html>
