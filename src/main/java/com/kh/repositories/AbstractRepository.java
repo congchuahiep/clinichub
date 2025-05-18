@@ -22,10 +22,10 @@ public abstract class AbstractRepository {
     @Autowired
     protected LocalSessionFactoryBean factory;
 
-    protected Session getCurrentSession() {
+    protected Session getCurrentSession() throws IllegalStateException {
         SessionFactory sessionFactory = this.factory.getObject();
         if (sessionFactory == null) {
-            throw new IllegalStateException("SessionFactory is not initialized");
+            throw new IllegalStateException("Không thể thực thi truy vấn! SessionFactory chưa được khởi tạo");
         }
         return sessionFactory.getCurrentSession();
     }

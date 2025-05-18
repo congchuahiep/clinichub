@@ -32,14 +32,13 @@ public class ApiUserController {
     private ValidationUtils validationUtils;
 
     /**
-     * Api xác thực thông tin người dùng
-     * 
-     * <p>
-     * 
      * Endpoint: {@code POST /api/login/}
-     * 
-     * @param userDTO - Thông tin người dùng cần được xác thực
-     * @return - JWT token
+     * <p>
+     * Api xác thực thông tin người dùng
+     * </p>
+     *
+     * @param userDTO Thông tin người dùng cần được xác thực
+     * @return JWT token
      */
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody UserLoginDTO userDTO) {
@@ -59,7 +58,8 @@ public class ApiUserController {
 
         // XỬ LÝ CÁC NGOẠI LỆ
         catch (BadCredentialsException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
                     .body(Collections.singletonMap("error", e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity
@@ -70,17 +70,16 @@ public class ApiUserController {
 
     /**
      * Endpoint: {@code GET /api/patient-register/}
-     * 
+     *
      * <p>
      * Dùng để đăng ký người dùng loại bệnh nhân. Các trường cần đăng ký được định
      * nghĩa tại {@link com.kh.dtos.UserDTO}
-     * 
-     * @param patientDataMap - Phần form-data của bệnh nhân, lưu trữ các thông tin
+     * </p>
+     *
+     * @param patientDataMap Phần form-data của bệnh nhân, lưu trữ các thông tin
      *                       cá nhân
-     * @param avatarUpload   - Ảnh avatar của bệnh nhân upload
+     * @param avatarUpload   Ảnh avatar của bệnh nhân upload
      * @return Reponse JSON đối tượng user mới tạo
-     * @exception tênTrường Trường dữ liệu validate không thành công
-     * @exception error     Các thông báo lỗi khác
      */
     @PostMapping(value = "/patient-register", consumes = "multipart/form-data")
     public ResponseEntity<?> patientRegister(
@@ -100,6 +99,7 @@ public class ApiUserController {
         patientDTO.setAddress(patientDataMap.getOrDefault("address", null));
         patientDTO.setAvatarUpload(avatarUpload);
 
+        // VALIDATE TRƯỜNG NGÀY SINH THỦ CÔNG
         try {
             if (patientDataMap.get("birthDate") != null && !patientDataMap.get("birthDate").isEmpty()) {
                 patientDTO.setBirthDate(java.sql.Date.valueOf(patientDataMap.get("birthDate")));
@@ -109,24 +109,25 @@ public class ApiUserController {
                     .body(Collections.singletonMap("birthDate", "Ngày sinh không đúng!"));
         }
 
-        // Sử dụng Validator để kiểm tra DTO
+        // SỬ DỤNG VALIDATOR ĐỂ KIỂM TRA DTO
         ResponseEntity<?> errorResponse = validationUtils.getValidationErrorResponse(patientDTO);
         if (errorResponse != null)
             return errorResponse;
 
         // TIẾN HÀNH TẠO ĐỐI TƯỢNG
-        try {
-            UserDTO dto_response = userService.addPatientUser(patientDTO);
-            return ResponseEntity.ok(dto_response);
-        }
-
-        // XỬ LÝ NGOẠI LỆ
-        catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Collections.singletonMap("error", e.getMessage()));
-        }
+        UserDTO dto_response = userService.addPatientUser(patientDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(dto_response);
     }
 
+    /**
+     * ENDPOINT: {@code /api/secure/profile}
+     * <p>
+     * Lấy thông tin cá nhân của người dùng.
+     * </p>
+     *
+     * @param principal dữ liệu của người dùng đã được xác thực
+     * @return dữ liệu thông tin cá nhân của người dùng.
+     */
     @RequestMapping("/secure/profile")
     @ResponseBody
     public ResponseEntity<?> getProfile(Principal principal) {

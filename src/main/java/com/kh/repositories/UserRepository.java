@@ -4,17 +4,19 @@
  */
 package com.kh.repositories;
 
+import com.kh.exceptions.EmailAlreadyExistsException;
+import com.kh.exceptions.UsernameAlreadyExistsException;
 import com.kh.pojo.User;
 
 import java.util.List;
 
 /**
- * 
+ *
  */
 public interface UserRepository {
     List<User> getUser();
 
     User getUserByUsername(String username);
 
-    User addUser(User user);
+    User addUser(User user) throws UsernameAlreadyExistsException, EmailAlreadyExistsException, IllegalStateException;
 }
