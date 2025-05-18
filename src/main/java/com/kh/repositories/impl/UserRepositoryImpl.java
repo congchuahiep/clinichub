@@ -7,6 +7,7 @@ package com.kh.repositories.impl;
 import java.util.List;
 
 import org.hibernate.Session;
+import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.query.Query;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -23,7 +24,6 @@ import com.kh.repositories.UserRepository;
 import jakarta.persistence.NoResultException;
 
 /**
- *
  * @author congchuahiep
  */
 @Repository
@@ -45,7 +45,7 @@ public class UserRepositoryImpl extends AbstractRepository implements UserReposi
 
     /**
      * Lấy đối tượng User từ cơ sở dữ liệu bằng username
-     * 
+     *
      * @param username - Tên người dùng
      * @return Người dùng khớp với tên người dùng
      * @throws UsernameNotFoundException Nếu như người dùng không tồn tại
@@ -65,27 +65,24 @@ public class UserRepositoryImpl extends AbstractRepository implements UserReposi
 
     /**
      * Thêm đối tượng User dùng vào cơ sở dữ liệu
-     * 
-     * @param user - Đối tượng user cần thêm
+     *
+     * @param user Đối tượng user cần thêm
      * @return Đối tượng user mới được tạo và lưu dưới cơ sở dữ liệu
      */
     @Override
-    public User addUser(User user) {
-        Session session = getCurrentSession();
+    public User addUser(User user) throws UsernameAlreadyExistsException, EmailAlreadyExistsException, IllegalStateException {
+        try {
+            Session session = getCurrentSession();
+            session.persist(user);
+        } catch (ConstraintViolationException ex) {
+            String message = ex.getMessage();
 
-        Query<User> usernameQuery = session.createQuery("FROM User WHERE username = :username", User.class);
-        usernameQuery.setParameter("username", user.getUsername());
-        if (!usernameQuery.getResultList().isEmpty()) {
-            throw new UsernameAlreadyExistsException("Username này đã có người khác sử dụng!");
+            if (message.contains("username")) {
+                throw new UsernameAlreadyExistsException("Username này đã có người khác sử dụng!");
+            } else if (message.contains("email")) {
+                throw new EmailAlreadyExistsException("Email này đã có người khác sử dụng!");
+            }
         }
-
-        Query<User> emailQuery = session.createQuery("FROM User WHERE email = :email", User.class);
-        emailQuery.setParameter("email", user.getEmail());
-        if (!emailQuery.getResultList().isEmpty()) {
-            throw new EmailAlreadyExistsException("Email này đã có người khác sử dụng!");
-        }
-
-        session.persist(user);
 
         return user;
     }

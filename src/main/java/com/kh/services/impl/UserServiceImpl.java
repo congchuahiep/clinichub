@@ -4,6 +4,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.kh.exceptions.FileUploadException;
+import com.kh.utils.FileUploadUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
@@ -32,7 +34,7 @@ public class UserServiceImpl implements UserService {
     private BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
-    private Cloudinary cloudinary;
+    private FileUploadUtils fileUploadUtils;
 
     public boolean authenticate(String username, String password) {
         User u = this.userRepository.getUserByUsername(username);
@@ -47,12 +49,12 @@ public class UserServiceImpl implements UserService {
     /**
      * Khi người dùng đăng nhập, Spring Security sẽ tự động gọi loadUserByUsername
      * để lấy thông tin người dùng và quyền
-     * 
+     *
      * @param username - Tên người dùng cần được load
      * @return Trả về một đối tượng User của Spring Security (không phải pojo
-     *         User) chứa username, password và danh sách quyền. Đối tượng này
-     *         implements UserDetails nên Spring Security có thể sử dụng để
-     *         xác thực và phân quyền
+     * User) chứa username, password và danh sách quyền. Đối tượng này
+     * implements UserDetails nên Spring Security có thể sử dụng để
+     * xác thực và phân quyền
      */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -76,19 +78,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDTO addPatientUser(UserDTO patientDTO) {
-
+    public UserDTO addPatientUser(UserDTO patientDTO) throws FileUploadException {
+        // KIỂM TRA MẬT KHẨU XÁC NHẬN
         if (!patientDTO.getPassword().equals(patientDTO.getConfirmPassword())) {
             throw new RuntimeException("Mật khẩu xác nhận không khớp với mật khẩu của bạn!");
         }
 
+        // MÃ HOÁ MẬT KHẨU
+        String hashedPassword = this.passwordEncoder.encode(patientDTO.getPassword());
+
+        // CHUYỂN DTO THÀNH ENTITY
         User patient = new User();
-
         patient.setRole(UserRole.PATIENT);
-
         patient.setUsername(patientDTO.getUsername());
-        patient.setPassword(this.passwordEncoder.encode(patientDTO.getPassword()));
-
+        patient.setPassword(hashedPassword);
         patient.setFirstName(patientDTO.getFirstName());
         patient.setLastName(patientDTO.getLastName());
         patient.setEmail(patientDTO.getEmail());
@@ -97,32 +100,17 @@ public class UserServiceImpl implements UserService {
         patient.setBirthDate(patientDTO.getBirthDate());
         patient.setGender(patientDTO.getGender());
 
-        MultipartFile avatar = patientDTO.getAvatarUpload();
-
-        // Xử lý đăng tải ảnh lên cloudinary và lấy đường link đã được đăng tải gắn vào
-        // avatar người dùng
-        if (avatar != null && !avatar.isEmpty()) {
-            try {
-                Map<?, ?> uploadResult = cloudinary.uploader().upload(
-                        avatar.getBytes(),
-                        ObjectUtils.asMap("resource_type", "auto"));
-
-                Object secureUrl = uploadResult.get("secure_url");
-
-                if (secureUrl != null) {
-                    patient.setAvatar(secureUrl.toString());
-                }
-            } catch (Exception e) {
-                throw new RuntimeException("Không gửi được ảnh: " + e.getMessage()); // Quăng ngoại lệ nếu không lưu ảnh
-                                                                                     // được
-            }
+        // UPLOAD AVATAR
+        try {
+            patient.setAvatar(fileUploadUtils.uploadFile(patientDTO.getAvatarUpload()));
+        } catch (FileUploadException e) {
+            throw new FileUploadException("Không thể tải ảnh lên!");
         }
 
         // TIẾN HÀNH LƯU USER VÀO TRONG DATABASE
         User savedUser = this.userRepository.addUser(patient);
 
         patientDTO.setAvatar(savedUser.getAvatar());
-
         return patientDTO;
     }
 

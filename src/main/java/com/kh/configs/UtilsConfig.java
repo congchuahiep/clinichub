@@ -1,5 +1,6 @@
 package com.kh.configs;
 
+import com.kh.utils.FileUploadUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,13 +18,16 @@ public class UtilsConfig {
 
     @Bean
     public Cloudinary cloudinary() {
-        Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
+        return new Cloudinary(ObjectUtils.asMap(
                 "cloud_name", env.getProperty("cloudinary.cloudName"),
                 "api_key", env.getProperty("cloudinary.apiKey"),
                 "api_secret", env.getProperty("cloudinary.apiSecret"),
                 "secure", true));
+    }
 
-        return cloudinary;
+    @Bean
+    public FileUploadUtils fileUploadUtils() {
+        return new FileUploadUtils();
     }
 
     @Bean
