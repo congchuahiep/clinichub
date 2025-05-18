@@ -1,4 +1,4 @@
-package com.kh.controllers;
+package com.kh.controllers.api;
 
 import java.util.List;
 import java.util.Map;

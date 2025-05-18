@@ -74,40 +74,32 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTO addPatientUser(UserDTO patientDTO) throws FileUploadException {
-        // KIỂM TRA MẬT KHẨU XÁC NHẬN
-        if (!patientDTO.getPassword().equals(patientDTO.getConfirmPassword())) {
-            throw new RuntimeException("Mật khẩu xác nhận không khớp với mật khẩu của bạn!");
-        }
-
-        // MÃ HOÁ MẬT KHẨU
-        String hashedPassword = this.passwordEncoder.encode(patientDTO.getPassword());
-
-        // CHUYỂN DTO THÀNH ENTITY
-        User patient = new User();
-        patient.setRole(UserRole.PATIENT);
-        patient.setUsername(patientDTO.getUsername());
-        patient.setPassword(hashedPassword);
-        patient.setFirstName(patientDTO.getFirstName());
-        patient.setLastName(patientDTO.getLastName());
-        patient.setEmail(patientDTO.getEmail());
-        patient.setPhone(patientDTO.getPhone());
-        patient.setAddress(patientDTO.getAddress());
-        patient.setBirthDate(patientDTO.getBirthDate());
-        patient.setGender(patientDTO.getGender());
-
-        // UPLOAD AVATAR
         try {
-            patient.setAvatar(fileUploadUtils.uploadFile(patientDTO.getAvatarUpload()));
+            // KIỂM TRA MẬT KHẨU XÁC NHẬN
+            if (!patientDTO.getPassword().equals(patientDTO.getConfirmPassword())) {
+                throw new RuntimeException("Mật khẩu xác nhận không khớp với mật khẩu của bạn!");
+            }
+
+            // MÃ HOÁ MẬT KHẨU
+            String hashedPassword = this.passwordEncoder.encode(patientDTO.getPassword());
+
+            // UPLOAD ẢNH LÊN CLOUDINARY
+            String uploadedAvatarUrl = patientDTO.getAvatarUpload() != null ?
+                    fileUploadUtils.uploadFile(patientDTO.getAvatarUpload()) : null;
+
+            // CHUYỂN DTO THÀNH OBJECT
+            User patient = patientDTO.toObject(patientDTO, UserRole.PATIENT, hashedPassword, uploadedAvatarUrl);
+
+            // TIẾN HÀNH LƯU USER VÀO TRONG DATABASE
+            User savedUser = this.userRepository.addUser(patient);
+            patientDTO.setAvatar(savedUser.getAvatar());
+            return patientDTO;
+
         } catch (FileUploadException e) {
             throw new FileUploadException("Không thể tải ảnh lên!");
         }
-
-        // TIẾN HÀNH LƯU USER VÀO TRONG DATABASE
-        User savedUser = this.userRepository.addUser(patient);
-
-        patientDTO.setAvatar(savedUser.getAvatar());
-        return patientDTO;
     }
+
 
     @Override
     public UserDTO getUserByUsername(String username) {

@@ -1,7 +1,8 @@
 package com.kh.dtos;
 
-import java.sql.Date;
+import java.util.Date;
 
+import com.kh.enums.UserRole;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -16,7 +17,7 @@ import jakarta.validation.constraints.Size;
 /**
  * DTO dùng để đăng ký thông tin bệnh nhân.
  * Chứa các trường dữ liệu cần thiết khi tạo tài khoản bệnh nhân mới.
- * 
+ *
  * <p>
  * Dữ liệu đầu vào:
  * <ul>
@@ -96,6 +97,28 @@ public class UserDTO {
         this.gender = user.getGender();
         this.address = user.getAddress();
         this.avatar = user.getAvatar();
+    }
+
+    public User toObject(UserDTO userDTO, UserRole userRole, String hashedPassword) {
+        User user = new User();
+        user.setRole(userRole);
+        user.setUsername(userDTO.getUsername());
+        user.setPassword(hashedPassword);
+        user.setFirstName(userDTO.getFirstName());
+        user.setLastName(userDTO.getLastName());
+        user.setEmail(userDTO.getEmail());
+        user.setPhone(userDTO.getPhone());
+        user.setAddress(userDTO.getAddress());
+        user.setBirthDate(userDTO.getBirthDate());
+        user.setGender(userDTO.getGender());
+
+        return user;
+    }
+
+    public User toObject(UserDTO userDTO, UserRole userRole, String hashedPassword, String uploadedAvatarUrl) {
+        User user = toObject(userDTO, userRole, hashedPassword);
+        user.setAvatar(uploadedAvatarUrl);
+        return user;
     }
 
     // GETTER/SETTER

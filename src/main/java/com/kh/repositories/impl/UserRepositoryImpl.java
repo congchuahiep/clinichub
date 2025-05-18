@@ -34,13 +34,25 @@ public class UserRepositoryImpl extends AbstractRepository implements UserReposi
         this.factory = factory;
     }
 
-    @Transactional
     @Override
-    public List<User> getUser() {
+    public List<User> getUserList() {
         Session session = getCurrentSession();
 
         Query<User> q = session.createQuery("FROM User", User.class);
         return q.getResultList();
+    }
+
+    @Override
+    public User getUserById(long id) {
+        try {
+            Session session = getCurrentSession();
+            Query<User> query = session.createQuery("FROM User WHERE id = :id", User.class);
+            query.setParameter("id", id);
+
+            return query.getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
     }
 
     /**

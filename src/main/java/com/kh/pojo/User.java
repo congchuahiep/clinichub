@@ -4,6 +4,7 @@
  */
 package com.kh.pojo;
 
+import com.kh.dtos.UserDTO;
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -177,6 +178,8 @@ public class User implements Serializable {
     @OneToMany(mappedBy = "verifiedBy")
     private Set<DoctorLicense> doctorLicenseSet1;
 
+    // Constructor
+
     public User() {
     }
 
@@ -191,6 +194,8 @@ public class User implements Serializable {
         this.email = email;
         this.role = role;
     }
+
+    // Getters/Setters
 
     public Long getId() {
         return id;

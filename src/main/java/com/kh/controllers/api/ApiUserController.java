@@ -1,6 +1,8 @@
-package com.kh.controllers;
+package com.kh.controllers.api;
 
 import java.security.Principal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Map;
 
@@ -85,38 +87,38 @@ public class ApiUserController {
     public ResponseEntity<?> patientRegister(
             @RequestParam Map<String, String> patientDataMap,
             @RequestParam(value = "avatar", required = false) MultipartFile avatarUpload) {
-
-        // TẠO DTO
-        UserDTO patientDTO = new UserDTO();
-        patientDTO.setUsername(patientDataMap.get("username"));
-        patientDTO.setPassword(patientDataMap.get("password"));
-        patientDTO.setConfirmPassword(patientDataMap.get("confirmPassword"));
-        patientDTO.setEmail(patientDataMap.get("email"));
-        patientDTO.setPhone(patientDataMap.get("phone"));
-        patientDTO.setFirstName(patientDataMap.get("firstName"));
-        patientDTO.setLastName(patientDataMap.get("lastName"));
-        patientDTO.setGender(patientDataMap.get("gender"));
-        patientDTO.setAddress(patientDataMap.getOrDefault("address", null));
-        patientDTO.setAvatarUpload(avatarUpload);
-
-        // VALIDATE TRƯỜNG NGÀY SINH THỦ CÔNG
         try {
-            if (patientDataMap.get("birthDate") != null && !patientDataMap.get("birthDate").isEmpty()) {
-                patientDTO.setBirthDate(java.sql.Date.valueOf(patientDataMap.get("birthDate")));
-            }
-        } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Collections.singletonMap("birthDate", "Ngày sinh không đúng!"));
+            // Parse ngày giờ từ string sang Date
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+            // TẠO DTO
+            UserDTO patientDTO = new UserDTO();
+            patientDTO.setUsername(patientDataMap.get("username"));
+            patientDTO.setPassword(patientDataMap.get("password"));
+            patientDTO.setConfirmPassword(patientDataMap.get("confirmPassword"));
+            patientDTO.setEmail(patientDataMap.get("email"));
+            patientDTO.setPhone(patientDataMap.get("phone"));
+            patientDTO.setFirstName(patientDataMap.get("firstName"));
+            patientDTO.setLastName(patientDataMap.get("lastName"));
+            patientDTO.setGender(patientDataMap.get("gender"));
+            patientDTO.setAddress(patientDataMap.getOrDefault("address", null));
+            patientDTO.setAvatarUpload(avatarUpload);
+            patientDTO.setBirthDate(dateFormat.parse(patientDataMap.get("birthDate")));
+
+            // SỬ DỤNG VALIDATOR ĐỂ KIỂM TRA DTO
+            ResponseEntity<?> errorResponse = validationUtils.getValidationErrorResponse(patientDTO);
+            if (errorResponse != null)
+                return errorResponse;
+
+            // TIẾN HÀNH TẠO ĐỐI TƯỢNG
+            UserDTO dto_response = userService.addPatientUser(patientDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(dto_response);
+
+        } catch (ParseException ex) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(Collections.singletonMap("birthDate", "Định dạng ngày gi không hợp lệ!"));
         }
-
-        // SỬ DỤNG VALIDATOR ĐỂ KIỂM TRA DTO
-        ResponseEntity<?> errorResponse = validationUtils.getValidationErrorResponse(patientDTO);
-        if (errorResponse != null)
-            return errorResponse;
-
-        // TIẾN HÀNH TẠO ĐỐI TƯỢNG
-        UserDTO dto_response = userService.addPatientUser(patientDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(dto_response);
     }
 
     /**

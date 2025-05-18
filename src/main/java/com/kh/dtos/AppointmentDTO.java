@@ -1,0 +1,107 @@
+package com.kh.dtos;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.kh.pojo.Appointment;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
+import java.util.Date;
+
+public class AppointmentDTO {
+    private Long id;
+
+    @NotNull(message = "ID bác sĩ không được để trống")
+    private Long doctorId;
+
+    @NotNull(message = "Thời gian khám không được để trống")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date appointmentDatetime;
+
+    @Size(max = 65535, message = "Ghi chú không được vượt quá 65535 ký tự")
+    private String note;
+
+    // các trường này chỉ để xuất
+    private String status;
+    private Date createdAt;
+    private UserDTO doctor;
+    private UserDTO patient;
+
+    // constructor
+    public AppointmentDTO() {
+    }
+
+    public AppointmentDTO(Appointment appointment) {
+        this.id = appointment.getId();
+        this.appointmentDatetime = appointment.getAppointmentDatetime();
+        this.note = appointment.getNote();
+        this.status = appointment.getStatus();
+        this.createdAt = appointment.getCreatedAt();
+        this.doctor = new UserDTO(appointment.getDoctorId());
+        this.patient = new UserDTO(appointment.getPatientId());
+    }
+
+    // getters/setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getDoctorId() {
+        return doctorId;
+    }
+
+    public void setDoctorId(Long doctorId) {
+        this.doctorId = doctorId;
+    }
+
+    public Date getAppointmentDatetime() {
+        return appointmentDatetime;
+    }
+
+    public void setAppointmentDatetime(Date appointmentDatetime) {
+        this.appointmentDatetime = appointmentDatetime;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public UserDTO getDoctor() {
+        return doctor;
+    }
+
+    public void setDoctor(UserDTO doctor) {
+        this.doctor = doctor;
+    }
+
+    public UserDTO getPatient() {
+        return patient;
+    }
+
+    public void setPatient(UserDTO patient) {
+        this.patient = patient;
+    }
+}

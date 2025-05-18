@@ -22,65 +22,74 @@ import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
 
 /**
- *
  * @author congchuahiep
  */
 @Entity
 @Table(name = "appointments")
 @NamedQueries({
-    @NamedQuery(name = "Appointment.findAll", query = "SELECT a FROM Appointment a"),
-    @NamedQuery(name = "Appointment.findById", query = "SELECT a FROM Appointment a WHERE a.id = :id"),
-    @NamedQuery(name = "Appointment.findByAppointmentDatetime", query = "SELECT a FROM Appointment a WHERE a.appointmentDatetime = :appointmentDatetime"),
-    @NamedQuery(name = "Appointment.findByTimeSlot", query = "SELECT a FROM Appointment a WHERE a.timeSlot = :timeSlot"),
-    @NamedQuery(name = "Appointment.findByStatus", query = "SELECT a FROM Appointment a WHERE a.status = :status"),
-    @NamedQuery(name = "Appointment.findByCreatedAt", query = "SELECT a FROM Appointment a WHERE a.createdAt = :createdAt"),
-    @NamedQuery(name = "Appointment.findByUpdatedAt", query = "SELECT a FROM Appointment a WHERE a.updatedAt = :updatedAt")})
+        @NamedQuery(name = "Appointment.findAll", query = "SELECT a FROM Appointment a"),
+        @NamedQuery(name = "Appointment.findById", query = "SELECT a FROM Appointment a WHERE a.id = :id"),
+        @NamedQuery(name = "Appointment.findByAppointmentDatetime", query = "SELECT a FROM Appointment a WHERE a.appointmentDatetime = :appointmentDatetime"),
+        @NamedQuery(name = "Appointment.findByStatus", query = "SELECT a FROM Appointment a WHERE a.status = :status"),
+        @NamedQuery(name = "Appointment.findByCreatedAt", query = "SELECT a FROM Appointment a WHERE a.createdAt = :createdAt"),
+        @NamedQuery(name = "Appointment.findByUpdatedAt", query = "SELECT a FROM Appointment a WHERE a.updatedAt = :updatedAt")})
 public class Appointment implements Serializable {
 
     private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
     @Column(name = "id")
     private Long id;
+
     @Basic(optional = false)
     @NotNull
     @Column(name = "appointment_datetime")
     @Temporal(TemporalType.TIMESTAMP)
     private Date appointmentDatetime;
-    @Basic(optional = false)
-    @NotNull
-    @Size(min = 1, max = 20)
-    @Column(name = "time_slot")
-    private String timeSlot;
+
     @Size(max = 11)
     @Column(name = "status")
     private String status;
+
     @Lob
     @Size(max = 65535)
     @Column(name = "note")
     private String note;
+
+    @CreationTimestamp
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
+
+    @UpdateTimestamp
     @Column(name = "updated_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date updatedAt;
+
     @JoinColumn(name = "doctor_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private User doctorId;
+
     @JoinColumn(name = "patient_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private User patientId;
+
     @OneToMany(mappedBy = "appointmentId")
     private Set<MedicalRecord> medicalRecordSet;
+
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "appointmentId")
     private Set<Payment> paymentSet;
+
     @OneToMany(mappedBy = "appointmentId")
     private Set<Notification> notificationSet;
 
@@ -94,7 +103,6 @@ public class Appointment implements Serializable {
     public Appointment(Long id, Date appointmentDatetime, String timeSlot) {
         this.id = id;
         this.appointmentDatetime = appointmentDatetime;
-        this.timeSlot = timeSlot;
     }
 
     public Long getId() {
@@ -111,14 +119,6 @@ public class Appointment implements Serializable {
 
     public void setAppointmentDatetime(Date appointmentDatetime) {
         this.appointmentDatetime = appointmentDatetime;
-    }
-
-    public String getTimeSlot() {
-        return timeSlot;
-    }
-
-    public void setTimeSlot(String timeSlot) {
-        this.timeSlot = timeSlot;
     }
 
     public String getStatus() {
@@ -217,5 +217,5 @@ public class Appointment implements Serializable {
     public String toString() {
         return "com.kh.pojo.Appointment[ id=" + id + " ]";
     }
-    
+
 }
