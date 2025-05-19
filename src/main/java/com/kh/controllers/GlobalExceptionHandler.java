@@ -5,6 +5,7 @@ import com.kh.exceptions.FileUploadException;
 import com.kh.exceptions.UsernameAlreadyExistsException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -28,6 +29,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleFileUpload(FileUploadException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Collections.singletonMap("file", ex.getMessage()));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<?> handleAccessDeniedException(AccessDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Collections.singletonMap("error", ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)

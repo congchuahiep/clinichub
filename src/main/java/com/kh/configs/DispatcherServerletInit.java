@@ -79,12 +79,4 @@ public class DispatcherServerletInit extends AbstractAnnotationConfigDispatcherS
     protected String[] getServletMappings() {
         return new String[] { "/" };
     }
-
-    /**
-     * Khởi tạo các lớp filter
-     */
-    @Override
-    protected Filter[] getServletFilters() {
-        return new Filter[] { new JwtFilter() }; // Filter sẽ áp dụng cho mọi request
-    }
 }

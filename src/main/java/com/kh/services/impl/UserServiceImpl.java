@@ -63,7 +63,7 @@ public class UserServiceImpl implements UserService {
         // Tạo danh sách quyền (authorities) cho người dùng. Ở đây, quyền được lấy từ
         // trường role của user (ADMIN, DOCTOR, PATIENT).
         Set<GrantedAuthority> authorities = new HashSet<>();
-        authorities.add(new SimpleGrantedAuthority(user.getRole().toString()));
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
 
         // Trả về một đối tượng User của Spring Security (không phải com.kh.pojo.User),
         // chứa username, password và danh sách quyền. Đối tượng này implements
@@ -99,7 +99,6 @@ public class UserServiceImpl implements UserService {
             throw new FileUploadException("Không thể tải ảnh lên!");
         }
     }
-
 
     @Override
     public UserDTO getUserByUsername(String username) {

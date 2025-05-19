@@ -2,6 +2,8 @@ package com.kh.utils;
 
 import java.util.Date;
 
+import com.kh.enums.UserRole;
+import com.kh.services.UserService;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
@@ -10,11 +12,21 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
 
 /**
  * Lớp này cung cấp các hành vi cho việc xác thực người dùng bằng JWT Token
  */
-public class JwtUtils {
+@Component
+public class SecurityUtils {
+
+    @Autowired
+    private UserService userService;
 
     private static final String SECRET = "12345678901234567890123456789012"; // 32 ký tự (AES key)
     private static final long EXPIRATION_MS = 86400000; // 1 ngày
@@ -27,7 +39,7 @@ public class JwtUtils {
      * @return - Chuỗi JWT token đã được serialize
      * @throws Exception Nếu có lỗi khi tạo token
      */
-    public static String generateToken(String username) throws Exception {
+    public String generateToken(String username) throws Exception {
         JWSSigner signer = new MACSigner(SECRET); // Nhập khoá bí mật để làm đối tượng ký
 
         // Tạo thông tin cho token
@@ -57,7 +69,7 @@ public class JwtUtils {
      *         hạn
      * @throws Exception Nếu có lỗi khi phân tích hoặc xác thực token
      */
-    public static String validateTokenAndGetUsername(String token) throws Exception {
+    public UserDetails validateTokenAndGetUsername(String token) throws Exception {
         SignedJWT signedJWT = SignedJWT.parse(token); // Chuyển token tành đối tượng "được ký JWT"
         JWSVerifier verifier = new MACVerifier(SECRET); // Kiểm tra JWT có được ký bằng khoá bí mật hay không
 
@@ -73,6 +85,33 @@ public class JwtUtils {
             return null;
         }
 
-        return signedJWT.getJWTClaimsSet().getSubject();
+        String username = signedJWT.getJWTClaimsSet().getSubject();
+        return userService.loadUserByUsername(username);
+    }
+
+    /**
+     * Kiểm tra xem người dùng hiện tại có ROLE tương ứng với UserType hay không
+     */
+    public boolean hasRole(Authentication auth, UserRole userRole) {
+        if (auth == null || !auth.isAuthenticated()) return false;
+
+        String requiredRole = "ROLE_" + userRole.name();
+
+        System.out.println("Required role: " + requiredRole);
+        System.out.println("Authorities: " + auth.getAuthorities());
+
+        return auth.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role -> role.equals(requiredRole));
+    }
+
+    /**
+     * Kiểm tra và ném lỗi nếu không có quyền
+     */
+    public void requireRole(Authentication auth, UserRole userRole) {
+        if (!hasRole(auth, userRole)) {
+            throw new AccessDeniedException("Bạn không có quyền truy cập vào trang này!");
+        }
     }
 }

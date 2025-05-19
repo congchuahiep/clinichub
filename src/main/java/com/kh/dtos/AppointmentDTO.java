@@ -20,13 +20,17 @@ public class AppointmentDTO {
     @Size(max = 65535, message = "Ghi chú không được vượt quá 65535 ký tự")
     private String note;
 
-    // các trường này chỉ để xuất
+    // Các trường này chỉ để xuất
     private String status;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createdAt;
+
     private UserDTO doctor;
+
     private UserDTO patient;
 
-    // constructor
+    // Constructor
     public AppointmentDTO() {
     }
 

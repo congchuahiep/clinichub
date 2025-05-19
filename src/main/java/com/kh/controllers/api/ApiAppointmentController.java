@@ -1,23 +1,25 @@
 package com.kh.controllers.api;
 
 import com.kh.dtos.AppointmentDTO;
+import com.kh.enums.UserRole;
 import com.kh.services.AppointmentService;
+import com.kh.utils.SecurityUtils;
 import com.kh.utils.ValidationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.security.Principal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 
-@Controller
+@RestController
 @RequestMapping("/api")
 public class ApiAppointmentController {
 
@@ -26,15 +28,20 @@ public class ApiAppointmentController {
 
     @Autowired
     private ValidationUtils validationUtils;
+    @Autowired
+    private SecurityUtils securityUtils;
 
     @PostMapping("/secure/appointments")
     public ResponseEntity<?> addAppointment(
             @RequestParam("doctorId") Long doctorId,
             @RequestParam("appointmentDatetime") String appointmentDatetime,
             @RequestParam(value = "note", required = false) String note,
-            Principal principal) {
-
+            Authentication auth
+    ) {
         try {
+            // KIỂM TRA QUYỀN
+            securityUtils.requireRole(auth, UserRole.PATIENT);
+
             // Parse ngày giờ từ string sang Date
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -51,7 +58,7 @@ public class ApiAppointmentController {
 
             // Gọi service để tạo lịch hẹn
             AppointmentDTO createdAppointment = appointmentService.addAppointment(
-                    appointmentDTO, principal.getName());
+                    appointmentDTO, auth.getName());
             return ResponseEntity.status(HttpStatus.CREATED).body(createdAppointment);
 
         } catch (ParseException e) {
@@ -59,6 +66,4 @@ public class ApiAppointmentController {
                     .body(Collections.singletonMap("appointmentDatetime", "Định dạng ngày giờ không hợp lệ!"));
         }
     }
-
-
 }

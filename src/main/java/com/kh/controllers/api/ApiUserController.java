@@ -4,24 +4,24 @@ import java.security.Principal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
+import com.kh.enums.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.dtos.UserLoginDTO;
 import com.kh.dtos.UserDTO;
 import com.kh.services.UserService;
-import com.kh.utils.JwtUtils;
+import com.kh.utils.SecurityUtils;
 import com.kh.utils.ValidationUtils;
 
 @RestController
@@ -29,6 +29,9 @@ import com.kh.utils.ValidationUtils;
 public class ApiUserController {
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private SecurityUtils securityUtils;
 
     @Autowired
     private ValidationUtils validationUtils;
@@ -53,7 +56,7 @@ public class ApiUserController {
         // TIỀN HÀNH XÁC THỰC NGƯỜI DÙNG VÀ TẠO TOKEN
         try {
             userService.authenticate(userDTO.getUsername(), userDTO.getPassword());
-            String token = JwtUtils.generateToken(userDTO.getUsername());
+            String token = securityUtils.generateToken(userDTO.getUsername());
             // Trả về JWT token cho người dùng
             return ResponseEntity.ok(Collections.singletonMap("token", token));
         }
@@ -71,11 +74,11 @@ public class ApiUserController {
     }
 
     /**
-     * Endpoint: {@code GET /api/patient-register/}
+     * Endpoint: {@code POST /api/patient-register/}
      *
      * <p>
      * Dùng để đăng ký người dùng loại bệnh nhân. Các trường cần đăng ký được định
-     * nghĩa tại {@link com.kh.dtos.UserDTO}
+     * nghĩa tại {@link UserDTO}
      * </p>
      *
      * @param patientDataMap Phần form-data của bệnh nhân, lưu trữ các thông tin
@@ -85,8 +88,9 @@ public class ApiUserController {
      */
     @PostMapping(value = "/patient-register", consumes = "multipart/form-data")
     public ResponseEntity<?> patientRegister(
-            @RequestParam Map<String, String> patientDataMap,
-            @RequestParam(value = "avatar", required = false) MultipartFile avatarUpload) {
+            @RequestParam Map<String, String> patientDataMap, // Tất cả dữ liệu không phải ảnh
+            @RequestParam(value = "avatar", required = false) MultipartFile avatarUpload
+    ) {
         try {
             // Parse ngày giờ từ string sang Date
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -130,10 +134,32 @@ public class ApiUserController {
      * @param principal dữ liệu của người dùng đã được xác thực
      * @return dữ liệu thông tin cá nhân của người dùng.
      */
-    @RequestMapping("/secure/profile")
+    @GetMapping("/secure/profile")
     @ResponseBody
     public ResponseEntity<?> getProfile(Principal principal) {
         return new ResponseEntity<>(this.userService.getUserByUsername(principal.getName()), HttpStatus.OK);
     }
 
+    /**
+     * ENDPOINT: {@code /api/secure/profile}
+     *
+     * <p>
+     * `For testing`: Lấy danh sách các quyền của người dùng
+     * </p>
+     */
+    @GetMapping("/secure/roles")
+    @ResponseBody
+    public List<String> getRoles(Authentication auth) {
+        return auth.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+    }
+
+    @PreAuthorize("hasRole('PATIENT')")
+    @GetMapping("/secure/test")
+    public String testRole(Authentication auth) {
+        System.out.println("Authorities: " + auth.getAuthorities());
+        return "OK";
+    }
 }

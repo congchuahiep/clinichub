@@ -63,7 +63,7 @@ public class UserDTO {
     private String lastName;
 
     @NotNull
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private Date birthDate;
 
     @NotBlank
