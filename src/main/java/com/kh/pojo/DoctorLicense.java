@@ -71,9 +71,6 @@ public class DoctorLicense implements Serializable {
     @JoinColumn(name = "doctor_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private User doctorId;
-    @JoinColumn(name = "verified_by", referencedColumnName = "id")
-    @ManyToOne
-    private User verifiedBy;
 
     public DoctorLicense() {
     }
@@ -151,14 +148,6 @@ public class DoctorLicense implements Serializable {
 
     public void setDoctorId(User doctorId) {
         this.doctorId = doctorId;
-    }
-
-    public User getVerifiedBy() {
-        return verifiedBy;
-    }
-
-    public void setVerifiedBy(User verifiedBy) {
-        this.verifiedBy = verifiedBy;
     }
 
     @Override

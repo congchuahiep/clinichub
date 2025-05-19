@@ -9,6 +9,7 @@ import com.kh.exceptions.UsernameAlreadyExistsException;
 import com.kh.pojo.User;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  *
@@ -21,4 +22,7 @@ public interface UserRepository {
     User getUserByUsername(String username);
 
     User addUser(User user) throws UsernameAlreadyExistsException, EmailAlreadyExistsException, IllegalStateException;
+    
+    Optional<User> findById(Long id);
+
 }

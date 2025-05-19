@@ -13,11 +13,18 @@
     </properties>
     
     <dependencies>
+       
         <dependency>
             <groupId>jakarta.platform</groupId>
             <artifactId>jakarta.jakartaee-api</artifactId>
             <version>${jakartaee}</version>
             <scope>provided</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <version>3.0.6</version> <!-- phiển bản bạn muốn -->
         </dependency>
         
         <dependency>
