@@ -45,6 +45,7 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private FileUploadUtils fileUploadUtils;
 
+    @Override
     public void authenticate(String username, String password) {
         User u = this.userRepository.getUserByUsername(username);
 
