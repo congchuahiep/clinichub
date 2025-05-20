@@ -24,14 +24,22 @@ public class AppointmentServiceImpl implements AppointmentService {
     public AppointmentDTO addAppointment(AppointmentDTO appointmentDTO, String patientUsername) {
         // Lấy thông tin bác sĩ và bệnh nhân
         User doctor = this.userRepository.
-                getUserById(appointmentDTO.getDoctorId())
+                getDoctorById(appointmentDTO.getDoctorId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bác sĩ!"));
         User patient = this.userRepository
                 .getUserByUsername(patientUsername)
                 .orElseThrow(() -> new UsernameNotFoundException("Người dùng không tồn tại!"));
 
-        if (doctor.getRole() != UserRole.DOCTOR)
-            throw new RuntimeException("Bác sĩ bạn chọn không phải là bác sĩ");
+        AppointmentSlot timeSlot = AppointmentSlot.fromSlotNumber(appointmentDTO.getTimeSlot());
+
+        // Kiểm tra lịch của bác sĩ
+        if (appointmentRepository.isDoctorTimeSlotTaken(
+                doctor,
+                appointmentDTO.getAppointmentDate(),
+                timeSlot
+        )) {
+            throw new IllegalArgumentException("Bác sĩ đã có lịch vào ca này.");
+        }
 
         // Chuyển đổi DTO thành entity
         Appointment appointment = new Appointment();
@@ -39,7 +47,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setPatientId(patient);
         appointment.setAppointmentDate(appointmentDTO.getAppointmentDate());
         appointment.setNote(appointmentDTO.getNote());
-        appointment.setTimeSlot(AppointmentSlot.fromSlotNumber(appointmentDTO.getTimeSlot()));
+        appointment.setTimeSlot(timeSlot);
         appointment.setStatus("scheduled"); // Trạng thái mặc định khi tạo
 
         // Lưu vào database

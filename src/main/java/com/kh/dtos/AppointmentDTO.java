@@ -47,6 +47,7 @@ public class AppointmentDTO {
         this.note = appointment.getNote();
         this.status = appointment.getStatus();
         this.createdAt = appointment.getCreatedAt();
+        this.timeSlot = appointment.getTimeSlot().getSlotNumber();
         this.doctor = new UserDTO(appointment.getDoctorId());
         this.patient = new UserDTO(appointment.getPatientId());
     }
