@@ -1,13 +1,14 @@
 package com.kh.controllers.api;
 
-import com.kh.dtos.DoctorLicenseDTO;
-import com.kh.dtos.DoctorProfileDTO;
 import java.security.Principal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Map;
 
+import com.kh.dtos.DoctorLicenseDTO;
+import com.kh.dtos.DoctorProfileDTO;
+import com.kh.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +24,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.kh.dtos.UserLoginDTO;
 import com.kh.dtos.UserDTO;
 import com.kh.services.UserService;
-import com.kh.utils.JwtUtils;
 import com.kh.utils.ValidationUtils;
 
 @RestController
@@ -34,6 +34,9 @@ public class ApiUserController {
 
     @Autowired
     private ValidationUtils validationUtils;
+
+    @Autowired
+    private SecurityUtils securityUtils;
 
     /**
      * Endpoint: {@code POST /api/login/}
@@ -55,7 +58,7 @@ public class ApiUserController {
         // TIỀN HÀNH XÁC THỰC NGƯỜI DÙNG VÀ TẠO TOKEN
         try {
             userService.authenticate(userDTO.getUsername(), userDTO.getPassword());
-            String token = JwtUtils.generateToken(userDTO.getUsername());
+            String token = securityUtils.generateToken(userDTO.getUsername());
             // Trả về JWT token cho người dùng
             return ResponseEntity.ok(Collections.singletonMap("token", token));
         }
@@ -123,26 +126,12 @@ public class ApiUserController {
         }
     }
 
-    /**
-     * ENDPOINT: {@code /api/secure/profile}
-     * <p>
-     * Lấy thông tin cá nhân của người dùng.
-     * </p>
-     *
-     * @param principal dữ liệu của người dùng đã được xác thực
-     * @return dữ liệu thông tin cá nhân của người dùng.
-     */
-    @RequestMapping("/secure/profile")
-    @ResponseBody
-    public ResponseEntity<?> getProfile(Principal principal) {
-        return new ResponseEntity<>(this.userService.getUserByUsername(principal.getName()), HttpStatus.OK);
-    }
-
     @PostMapping("/doctor-register")
-    public ResponseEntity<?> registerDoctor(@RequestParam Map<String, String> doctorDataMap,
-                                            @RequestParam (value = "avatar", required = false) MultipartFile avatarUpload
-    ){
-       try {
+    public ResponseEntity<?> registerDoctor(
+            @RequestParam Map<String, String> doctorDataMap,
+            @RequestParam(value = "avatar", required = false) MultipartFile avatarUpload
+    ) {
+        try {
             // Parse ngày giờ từ string sang Date
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -159,13 +148,12 @@ public class ApiUserController {
             doctorDTO.setAddress(doctorDataMap.getOrDefault("address", null));
             doctorDTO.setAvatarUpload(avatarUpload);
             doctorDTO.setBirthDate(dateFormat.parse(doctorDataMap.get("birthDate")));
-             
-            DoctorLicenseDTO doctorLicense = new DoctorLicenseDTO();
-            
-            doctorLicense.setLicenseNumber(doctorDataMap.get("licenseNumber"));
-            doctorLicense.setSpecialtyId(Long.parseLong(doctorDataMap.get("specialistId")));
-            doctorLicense.setIssued(dateFormat.parse(doctorDataMap.get("issuedDate")));
-            doctorLicense.setExpiry(dateFormat.parse(doctorDataMap.get("expiryDate")));
+
+            DoctorLicenseDTO doctorLicenseDTO = new DoctorLicenseDTO();
+            doctorLicenseDTO.setLicenseNumber(doctorDataMap.get("licenseNumber"));
+            doctorLicenseDTO.setSpecialtyId(Long.parseLong(doctorDataMap.get("specialtyId")));
+            doctorLicenseDTO.setIssued(dateFormat.parse(doctorDataMap.get("issuedDate")));
+            doctorLicenseDTO.setExpiry(dateFormat.parse(doctorDataMap.get("expiryDate")));
 
             // SỬ DỤNG VALIDATOR ĐỂ KIỂM TRA DTO
             ResponseEntity<?> errorResponse = validationUtils.getValidationErrorResponse(doctorDTO);
@@ -173,8 +161,8 @@ public class ApiUserController {
                 return errorResponse;
 
             // TIẾN HÀNH TẠO ĐỐI TƯỢNG
-            DoctorProfileDTO dto_response = userService.addDoctorUser(doctorDTO, doctorLicense);
-            
+            DoctorProfileDTO dto_response = userService.addDoctorUser(doctorDTO, doctorLicenseDTO);
+
             return ResponseEntity.status(HttpStatus.CREATED).body(dto_response);
 
         } catch (ParseException ex) {
@@ -184,4 +172,18 @@ public class ApiUserController {
         }
     }
 
+    /**
+     * ENDPOINT: {@code /api/secure/profile}
+     * <p>
+     * Lấy thông tin cá nhân của người dùng.
+     * </p>
+     *
+     * @param principal dữ liệu của người dùng đã được xác thực
+     * @return dữ liệu thông tin cá nhân của người dùng.
+     */
+    @RequestMapping("/secure/profile")
+    @ResponseBody
+    public ResponseEntity<?> getProfile(Principal principal) {
+        return new ResponseEntity<>(this.userService.getUserByUsername(principal.getName()), HttpStatus.OK);
+    }
 }

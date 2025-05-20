@@ -2,10 +2,13 @@ package com.kh.services.impl;
 
 import com.kh.dtos.DoctorLicenseDTO;
 import com.kh.dtos.DoctorProfileDTO;
+
 import java.util.HashSet;
 import java.util.Set;
 
 import com.kh.exceptions.FileUploadException;
+import com.kh.pojo.Specialty;
+import com.kh.repositories.SpecialtyRepository;
 import com.kh.utils.FileUploadUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -29,9 +32,12 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
-    private DoctorLisenceRepository doctorRepository;
+    private DoctorLisenceRepository doctorLisenceRepository;
+
+    @Autowired
+    private SpecialtyRepository specialtyRepository;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
@@ -70,7 +76,7 @@ public class UserServiceImpl implements UserService {
         // Tạo danh sách quyền (authorities) cho người dùng. Ở đây, quyền được lấy từ
         // trường role của user (ADMIN, DOCTOR, PATIENT).
         Set<GrantedAuthority> authorities = new HashSet<>();
-        authorities.add(new SimpleGrantedAuthority(user.getRole().toString()));
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
 
         // Trả về một đối tượng User của Spring Security (không phải com.kh.pojo.User),
         // chứa username, password và danh sách quyền. Đối tượng này implements
@@ -95,7 +101,7 @@ public class UserServiceImpl implements UserService {
                     fileUploadUtils.uploadFile(patientDTO.getAvatarUpload()) : null;
 
             // CHUYỂN DTO THÀNH OBJECT
-            User patient = patientDTO.toObject(patientDTO, UserRole.PATIENT, hashedPassword, uploadedAvatarUrl);
+            User patient = patientDTO.toObject(UserRole.PATIENT, hashedPassword, uploadedAvatarUrl);
 
             // TIẾN HÀNH LƯU USER VÀO TRONG DATABASE
             User savedUser = this.userRepository.addUser(patient);
@@ -107,24 +113,25 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-
     @Override
     public UserDTO getUserByUsername(String username) {
         User user = this.userRepository.getUserByUsername(username);
 
         return new UserDTO(user.getUsername(), user.getPassword());
     }
-    
+
     @Override
-    public DoctorProfileDTO addDoctorUser(UserDTO doctorDTO, DoctorLicenseDTO doctorLicenseDTO) throws FileUploadException{
-       try {
+    public DoctorProfileDTO addDoctorUser(UserDTO doctorDTO, DoctorLicenseDTO doctorLicenseDTO) throws FileUploadException {
+        try {
             // KIỂM TRA MẬT KHẨU XÁC NHẬN
             if (!doctorDTO.getPassword().equals(doctorDTO.getConfirmPassword())) {
                 throw new RuntimeException("Mật khẩu xác nhận không khớp với mật khẩu của bạn!");
             }
 
-            
-            
+            // Kiểm tra và lấy specialist
+            Specialty specialty = specialtyRepository.findById(doctorLicenseDTO.getSpecialtyId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy chuyên khoa với ID: " + doctorLicenseDTO.getSpecialtyId()));
+
             // MÃ HOÁ MẬT KHẨU
             String hashedPassword = this.passwordEncoder.encode(doctorDTO.getPassword());
 
@@ -132,22 +139,19 @@ public class UserServiceImpl implements UserService {
             String uploadedAvatarUrl = doctorDTO.getAvatarUpload() != null ?
                     fileUploadUtils.uploadFile(doctorDTO.getAvatarUpload()) : null;
 
-            // CHUYỂN DTO THÀNH OBJECT
-            User doctor = doctorDTO.toObject(doctorDTO, UserRole.DOCTOR, hashedPassword, uploadedAvatarUrl);
-            
-            // TODO: Thêm chứng chỉ 
-            
-            
-            // TIẾN HÀNH LƯU USER VÀO TRONG DATABASE
+            // Lưu thông tin bác sĩ
+            User doctor = doctorDTO.toObject(UserRole.DOCTOR, hashedPassword, uploadedAvatarUrl);
+            doctor.setIsActive(false); // Tài khoản bác sĩ mới tạo mặc định chưa được kích hoạt
             User savedUser = this.userRepository.addUser(doctor);
+
+            // Lưu thông tin giấy phép
+            DoctorLicense license = doctorLicenseDTO.toObject(savedUser, specialty);
+            doctorLisenceRepository.addDoctorLisence(license);
+
+            // Cập nhật thông tin vào DTO để trả về
             doctorDTO.setAvatar(savedUser.getAvatar());
-            
-            DoctorLicense doctorLicense = doctorRepository.addDoctorLisence(doctorLicenseDTO.toObject(savedUser));
-            doctorLicenseDTO.setDoctorId(doctorLicense.getId());
-            
-            DoctorProfileDTO doctorProfileDTO = new DoctorProfileDTO(doctorDTO, doctorLicenseDTO);
-            
-            return doctorProfileDTO;
+
+            return new DoctorProfileDTO(doctorDTO, doctorLicenseDTO);
 
         } catch (FileUploadException e) {
             throw new FileUploadException("Không thể tải ảnh lên!");

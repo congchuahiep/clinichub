@@ -24,6 +24,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
 
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.ColumnTransformer;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -95,6 +96,7 @@ public class User implements Serializable {
 
     @Column(name = "is_active")
     @JsonIgnore
+    @ColumnDefault("1")
     private Boolean isActive;
 
     @Size(max = 45)
@@ -175,6 +177,7 @@ public class User implements Serializable {
     // Constructor
 
     public User() {
+        this.isActive = true;
     }
 
     public User(Long id) {

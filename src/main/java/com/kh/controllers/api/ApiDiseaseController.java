@@ -19,6 +19,11 @@ public class ApiDiseaseController {
     @Autowired
     private DiseaseService diseaseService;
 
+    /**
+     *
+     * @param params Các tham số URL
+     * @return Danh sách các loại bệnh
+     */
     @GetMapping("/diseases")
     public ResponseEntity<?> getDisease(@RequestParam Map<String, String> params) {
         List<DiseaseDTO> diseaseDTOs = this.diseaseService.getDiseaseList(params);

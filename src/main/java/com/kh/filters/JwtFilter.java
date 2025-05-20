@@ -2,24 +2,29 @@ package com.kh.filters;
 
 import java.io.IOException;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.kh.utils.JwtUtils;
+import com.kh.utils.SecurityUtils;
 
-import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
 
-public class JwtFilter implements Filter {
+@Component
+public class JwtFilter extends OncePerRequestFilter {
+
+    @Autowired
+    private SecurityUtils securityUtils;
 
     /**
      * Ghi đè phương thức doFilter để xử lý từng request đi qua filter này
-     * 
+     *
      * @param request
      * @param response
      * @param chain
@@ -27,33 +32,31 @@ public class JwtFilter implements Filter {
      * @throws ServletException
      */
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-            throws IOException, ServletException {
-        // Ép kiểu request và response về dạng HTTP để sử dụng các phương thức đặc trưng
-        // của HTTP
-        HttpServletRequest httpRequest = (HttpServletRequest) request;
-        HttpServletResponse httpResponse = (HttpServletResponse) response;
+    public void doFilterInternal(HttpServletRequest request,
+                                 HttpServletResponse response,
+                                 FilterChain chain)
 
+    throws IOException, ServletException {
         // Xác định prefix của các endpoint cần bảo vệ (/api/secure) và lấy URI của request hiện tại
-        String apiPrefix = httpRequest.getContextPath() + "/api/secure";
-        String requestUri = httpRequest.getRequestURI();
+        String apiPrefix = request.getContextPath() + "/api/secure";
+        String requestUri = request.getRequestURI();
 
         // Chỉ những request bắt đầu bằng (/api/secure) thì mới kiểm tra
         if (requestUri.startsWith(apiPrefix)) {
-            String header = httpRequest.getHeader("Authorization");
+            String header = request.getHeader("Authorization");
 
             if (header == null || !header.startsWith("Bearer ")) {
-                httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing or invalid Authorization header.");
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing or invalid Authorization header.");
                 return;
             }
 
             String token = header.substring(7);
             try {
-                String username = JwtUtils.validateTokenAndGetUsername(token);
-                if (username != null) {
-                    httpRequest.setAttribute("username", username);
+                UserDetails user = securityUtils.validateTokenAndGetUsername(token);
+                if (user != null) {
+                    request.setAttribute("username", user);
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                            username, null, null);
+                            user, null, user.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                     chain.doFilter(request, response);
                     return;
@@ -61,7 +64,7 @@ public class JwtFilter implements Filter {
             } catch (Exception e) {
                 // Log lỗi nếu cần
             }
-            httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token không hợp lệ hoặc hết hạn");
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token không hợp lệ hoặc hết hạn");
             return;
         }
 
