@@ -1,7 +1,9 @@
 package com.kh.dtos;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.kh.pojo.DoctorLicense;
+import com.kh.pojo.Specialty;
 import com.kh.pojo.User;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -27,20 +29,27 @@ public class DoctorLicenseDTO {
     private String licenseNumber;
     
     @NotBlank
+    @JsonIgnore
     private long specialtyId;
+    private String specialtyName;
     
     @NotBlank
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     private Date issued;
     
     @NotBlank
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     private Date expiry;
     
-    public DoctorLicense toObject(User doctor) {
+    public DoctorLicense toObject(User doctor, Specialty specialty) {
         DoctorLicense doctorLicense = new DoctorLicense();
         doctorLicense.setLicenseNumber(this.licenseNumber);
         doctorLicense.setExpiryDate(this.expiry);
         doctorLicense.setIssuedDate(this.issued);
+        doctorLicense.setSpecialtyId(specialty);
         doctorLicense.setDoctorId(doctor);
+        doctorLicense.setStatus("pending");
+        this.specialtyName = specialty.getName();
         
         return doctorLicense;
     }
@@ -114,6 +123,12 @@ public class DoctorLicenseDTO {
     public void setExpiry(Date expiry) {
         this.expiry = expiry;
     }
-    
-    
+
+    public String getSpecialtyName() {
+        return specialtyName;
+    }
+
+    public void setSpecialtyName(String specialtyName) {
+        this.specialtyName = specialtyName;
+    }
 }

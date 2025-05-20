@@ -99,24 +99,24 @@ public class UserDTO {
         this.avatar = user.getAvatar();
     }
 
-    public User toObject(UserDTO userDTO, UserRole userRole, String hashedPassword) {
+    public User toObject(UserRole userRole, String hashedPassword) {
         User user = new User();
         user.setRole(userRole);
-        user.setUsername(userDTO.getUsername());
+        user.setUsername(this.getUsername());
         user.setPassword(hashedPassword);
-        user.setFirstName(userDTO.getFirstName());
-        user.setLastName(userDTO.getLastName());
-        user.setEmail(userDTO.getEmail());
-        user.setPhone(userDTO.getPhone());
-        user.setAddress(userDTO.getAddress());
-        user.setBirthDate(userDTO.getBirthDate());
-        user.setGender(userDTO.getGender());
+        user.setFirstName(this.getFirstName());
+        user.setLastName(this.getLastName());
+        user.setEmail(this.getEmail());
+        user.setPhone(this.getPhone());
+        user.setAddress(this.getAddress());
+        user.setBirthDate(this.getBirthDate());
+        user.setGender(this.getGender());
 
         return user;
     }
 
-    public User toObject(UserDTO userDTO, UserRole userRole, String hashedPassword, String uploadedAvatarUrl) {
-        User user = toObject(userDTO, userRole, hashedPassword);
+    public User toObject(UserRole userRole, String hashedPassword, String uploadedAvatarUrl) {
+        User user = this.toObject(userRole, hashedPassword);
         user.setAvatar(uploadedAvatarUrl);
         return user;
     }

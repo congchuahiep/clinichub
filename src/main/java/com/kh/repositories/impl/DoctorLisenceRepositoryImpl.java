@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class DoctorLisenceRepositoryImpl extends AbstractRepository implements DoctorLisenceRepository {
 
+
     @Override
     public DoctorLicense addDoctorLisence(DoctorLicense doctorLisence) {
         try{
