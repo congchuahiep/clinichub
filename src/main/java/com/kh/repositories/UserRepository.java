@@ -17,9 +17,11 @@ import java.util.Optional;
 public interface UserRepository {
     List<User> getUserList();
 
-    User getUserById(long id);
+    Optional<User> getUserById(long id);
 
-    User getUserByUsername(String username);
+    Optional<User> getDoctorById(long id);
+
+    Optional<User> getUserByUsername(String username);
 
     User addUser(User user) throws UsernameAlreadyExistsException, EmailAlreadyExistsException, IllegalStateException;
     

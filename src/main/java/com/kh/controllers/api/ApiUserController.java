@@ -91,7 +91,8 @@ public class ApiUserController {
     @PostMapping(value = "/patient-register", consumes = "multipart/form-data")
     public ResponseEntity<?> patientRegister(
             @RequestParam Map<String, String> patientDataMap,
-            @RequestParam(value = "avatar", required = false) MultipartFile avatarUpload) {
+            @RequestParam(value = "avatar", required = false) MultipartFile avatarUpload
+    ) {
         try {
             // Parse ngày giờ từ string sang Date
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");

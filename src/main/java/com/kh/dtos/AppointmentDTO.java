@@ -2,6 +2,8 @@ package com.kh.dtos;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.kh.pojo.Appointment;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -14,8 +16,13 @@ public class AppointmentDTO {
     private Long doctorId;
 
     @NotNull(message = "Thời gian khám không được để trống")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private Date appointmentDatetime;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private Date appointmentDate;
+
+    @NotNull(message = "Ca khám không được để trống!")
+    @Min(value = 1, message = "Ca khám không hợp lệ! Chọn ca 1-16")
+    @Max(value = 16, message = "Ca khám không hợp lệ! Chọn ca 1-16")
+    private int timeSlot;  // client chỉ gửi số 1–16
 
     @Size(max = 65535, message = "Ghi chú không được vượt quá 65535 ký tự")
     private String note;
@@ -36,7 +43,7 @@ public class AppointmentDTO {
 
     public AppointmentDTO(Appointment appointment) {
         this.id = appointment.getId();
-        this.appointmentDatetime = appointment.getAppointmentDatetime();
+        this.appointmentDate = appointment.getAppointmentDate();
         this.note = appointment.getNote();
         this.status = appointment.getStatus();
         this.createdAt = appointment.getCreatedAt();
@@ -61,12 +68,12 @@ public class AppointmentDTO {
         this.doctorId = doctorId;
     }
 
-    public Date getAppointmentDatetime() {
-        return appointmentDatetime;
+    public Date getAppointmentDate() {
+        return appointmentDate;
     }
 
-    public void setAppointmentDatetime(Date appointmentDatetime) {
-        this.appointmentDatetime = appointmentDatetime;
+    public void setAppointmentDate(Date appointmentDate) {
+        this.appointmentDate = appointmentDate;
     }
 
     public String getNote() {
@@ -107,5 +114,13 @@ public class AppointmentDTO {
 
     public void setPatient(UserDTO patient) {
         this.patient = patient;
+    }
+
+    public int getTimeSlot() {
+        return timeSlot;
+    }
+
+    public void setTimeSlot(int timeSlot) {
+        this.timeSlot = timeSlot;
     }
 }

@@ -8,7 +8,6 @@ import com.kh.utils.ValidationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,7 +33,8 @@ public class ApiAppointmentController {
     @PostMapping("/secure/appointments")
     public ResponseEntity<?> addAppointment(
             @RequestParam("doctorId") Long doctorId,
-            @RequestParam("appointmentDatetime") String appointmentDatetime,
+            @RequestParam("appointmentDate") String appointmentDate,
+            @RequestParam("timeSlot") int timeSlot,
             @RequestParam(value = "note", required = false) String note,
             Authentication auth
     ) {
@@ -43,13 +43,14 @@ public class ApiAppointmentController {
             securityUtils.requireRole(auth, UserRole.PATIENT);
 
             // Parse ngày giờ từ string sang Date
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
             // Tạo DTO từ form data
             AppointmentDTO appointmentDTO = new AppointmentDTO();
-            appointmentDTO.setAppointmentDatetime(dateFormat.parse(appointmentDatetime));
+            appointmentDTO.setAppointmentDate(dateFormat.parse(appointmentDate));
             appointmentDTO.setDoctorId(doctorId);
             appointmentDTO.setNote(note);
+            appointmentDTO.setTimeSlot(timeSlot);
 
             // VALIDATE DỮ LIỆU
             ResponseEntity<?> errorResponse = validationUtils.getValidationErrorResponse(appointmentDTO);

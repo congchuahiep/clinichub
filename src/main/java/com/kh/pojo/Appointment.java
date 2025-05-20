@@ -4,22 +4,8 @@
  */
 package com.kh.pojo;
 
-import jakarta.persistence.Basic;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.NamedQueries;
-import jakarta.persistence.NamedQuery;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
+import com.kh.enums.AppointmentSlot;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.CreationTimestamp;
@@ -37,7 +23,7 @@ import java.util.Set;
 @NamedQueries({
         @NamedQuery(name = "Appointment.findAll", query = "SELECT a FROM Appointment a"),
         @NamedQuery(name = "Appointment.findById", query = "SELECT a FROM Appointment a WHERE a.id = :id"),
-        @NamedQuery(name = "Appointment.findByAppointmentDatetime", query = "SELECT a FROM Appointment a WHERE a.appointmentDatetime = :appointmentDatetime"),
+        @NamedQuery(name = "Appointment.findByAppointmentDate", query = "SELECT a FROM Appointment a WHERE a.appointmentDate = :appointmentDate"),
         @NamedQuery(name = "Appointment.findByStatus", query = "SELECT a FROM Appointment a WHERE a.status = :status"),
         @NamedQuery(name = "Appointment.findByCreatedAt", query = "SELECT a FROM Appointment a WHERE a.createdAt = :createdAt"),
         @NamedQuery(name = "Appointment.findByUpdatedAt", query = "SELECT a FROM Appointment a WHERE a.updatedAt = :updatedAt")})
@@ -53,9 +39,14 @@ public class Appointment implements Serializable {
 
     @Basic(optional = false)
     @NotNull
-    @Column(name = "appointment_datetime")
+    @Column(name = "appointment_date")
     @Temporal(TemporalType.TIMESTAMP)
-    private Date appointmentDatetime;
+    private Date appointmentDate;
+
+    @NotNull
+    @Column(name = "timeslot")
+    @Enumerated(EnumType.STRING)
+    private AppointmentSlot timeSlot;
 
     @Size(max = 11)
     @Column(name = "status")
@@ -100,9 +91,9 @@ public class Appointment implements Serializable {
         this.id = id;
     }
 
-    public Appointment(Long id, Date appointmentDatetime, String timeSlot) {
+    public Appointment(Long id, Date appointmentDate, String timeSlot) {
         this.id = id;
-        this.appointmentDatetime = appointmentDatetime;
+        this.appointmentDate = appointmentDate;
     }
 
     public Long getId() {
@@ -113,12 +104,12 @@ public class Appointment implements Serializable {
         this.id = id;
     }
 
-    public Date getAppointmentDatetime() {
-        return appointmentDatetime;
+    public Date getAppointmentDate() {
+        return appointmentDate;
     }
 
-    public void setAppointmentDatetime(Date appointmentDatetime) {
-        this.appointmentDatetime = appointmentDatetime;
+    public void setAppointmentDate(Date appointmentDate) {
+        this.appointmentDate = appointmentDate;
     }
 
     public String getStatus() {
@@ -191,6 +182,14 @@ public class Appointment implements Serializable {
 
     public void setNotificationSet(Set<Notification> notificationSet) {
         this.notificationSet = notificationSet;
+    }
+
+    public AppointmentSlot getTimeSlot() {
+        return timeSlot;
+    }
+
+    public void setTimeSlot(AppointmentSlot timeSlot) {
+        this.timeSlot = timeSlot;
     }
 
     @Override

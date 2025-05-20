@@ -46,9 +46,11 @@ public class UserServiceImpl implements UserService {
     private FileUploadUtils fileUploadUtils;
 
     public void authenticate(String username, String password) {
-        User u = this.userRepository.getUserByUsername(username);
+        User user = this.userRepository
+                .getUserByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Người dùng không tồn tại!"));
 
-        if (!this.passwordEncoder.matches(password, u.getPassword())) {
+        if (!this.passwordEncoder.matches(password, user.getPassword())) {
             throw new BadCredentialsException("Tài khoản hoặc mật khẩu không chính xác!");
         }
 
@@ -66,12 +68,10 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = this.userRepository.getUserByUsername(username); // Lấy User từ Database
-
-        // Nếu không tìm thấy user, quăng ngoại lệ
-        if (user == null) {
-            throw new UsernameNotFoundException("Invalid username!");
-        }
+        // Lấy User từ Database
+        User user = this.userRepository
+                .getUserByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Người dùng không tồn tại!"));
 
         // Tạo danh sách quyền (authorities) cho người dùng. Ở đây, quyền được lấy từ
         // trường role của user (ADMIN, DOCTOR, PATIENT).
@@ -115,7 +115,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTO getUserByUsername(String username) {
-        User user = this.userRepository.getUserByUsername(username);
+        User user = this.userRepository
+                .getUserByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Người dùng không tồn tại!"));
 
         return new UserDTO(user.getUsername(), user.getPassword());
     }

@@ -21,23 +21,23 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.Size;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
 
 /**
- *
  * @author congchuahiep
  */
 @Entity
 @Table(name = "health_records")
 @NamedQueries({
-    @NamedQuery(name = "HealthRecord.findAll", query = "SELECT h FROM HealthRecord h"),
-    @NamedQuery(name = "HealthRecord.findById", query = "SELECT h FROM HealthRecord h WHERE h.id = :id"),
-    @NamedQuery(name = "HealthRecord.findByCreatedAt", query = "SELECT h FROM HealthRecord h WHERE h.createdAt = :createdAt"),
-    @NamedQuery(name = "HealthRecord.findByUpdatedAt", query = "SELECT h FROM HealthRecord h WHERE h.updatedAt = :updatedAt")})
+        @NamedQuery(name = "HealthRecord.findAll", query = "SELECT h FROM HealthRecord h"),
+        @NamedQuery(name = "HealthRecord.findById", query = "SELECT h FROM HealthRecord h WHERE h.id = :id"),
+        @NamedQuery(name = "HealthRecord.findByCreatedAt", query = "SELECT h FROM HealthRecord h WHERE h.createdAt = :createdAt"),
+        @NamedQuery(name = "HealthRecord.findByUpdatedAt", query = "SELECT h FROM HealthRecord h WHERE h.updatedAt = :updatedAt")})
 public class HealthRecord implements Serializable {
-    
+
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -208,5 +208,5 @@ public class HealthRecord implements Serializable {
     public void setBloodSugar(String bloodSugar) {
         this.bloodSugar = bloodSugar;
     }
-    
+
 }
