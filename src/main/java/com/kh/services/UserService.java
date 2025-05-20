@@ -1,5 +1,7 @@
 package com.kh.services;
 
+import com.kh.dtos.DoctorLicenseDTO;
+import com.kh.dtos.DoctorProfileDTO;
 import com.kh.exceptions.FileUploadException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
@@ -11,4 +13,6 @@ public interface UserService extends UserDetailsService {
     UserDTO addPatientUser(UserDTO patientDTO) throws FileUploadException;
 
     UserDTO getUserByUsername(String username);
+    
+    DoctorProfileDTO addDoctorUser(UserDTO doctorDTO, DoctorLicenseDTO doctorLicense) throws FileUploadException;
 }

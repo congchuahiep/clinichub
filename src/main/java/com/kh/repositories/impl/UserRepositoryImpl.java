@@ -20,8 +20,11 @@ import com.kh.exceptions.UsernameAlreadyExistsException;
 import com.kh.pojo.User;
 import com.kh.repositories.AbstractRepository;
 import com.kh.repositories.UserRepository;
+import jakarta.persistence.EntityManager;
 
 import jakarta.persistence.NoResultException;
+import jakarta.persistence.PersistenceContext;
+import java.util.Optional;
 
 /**
  * @author congchuahiep
@@ -33,6 +36,9 @@ public class UserRepositoryImpl extends AbstractRepository implements UserReposi
     public UserRepositoryImpl(LocalSessionFactoryBean factory) {
         this.factory = factory;
     }
+    
+    @PersistenceContext
+    private EntityManager em;
 
     @Override
     public List<User> getUserList() {
@@ -97,5 +103,10 @@ public class UserRepositoryImpl extends AbstractRepository implements UserReposi
         }
 
         return user;
+    }
+    
+    @Override
+    public Optional<User> findById(Long id) {
+        return Optional.ofNullable(em.find(User.class, id));
     }
 }

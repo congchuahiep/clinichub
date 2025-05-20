@@ -1,5 +1,7 @@
 package com.kh.controllers.api;
 
+import com.kh.dtos.DoctorLicenseDTO;
+import com.kh.dtos.DoctorProfileDTO;
 import java.security.Principal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -134,6 +136,52 @@ public class ApiUserController {
     @ResponseBody
     public ResponseEntity<?> getProfile(Principal principal) {
         return new ResponseEntity<>(this.userService.getUserByUsername(principal.getName()), HttpStatus.OK);
+    }
+
+    @PostMapping("/doctor-register")
+    public ResponseEntity<?> registerDoctor(@RequestParam Map<String, String> doctorDataMap,
+                                            @RequestParam (value = "avatar", required = false) MultipartFile avatarUpload
+    ){
+       try {
+            // Parse ngày giờ từ string sang Date
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+            // TẠO DTO
+            UserDTO doctorDTO = new UserDTO();
+            doctorDTO.setUsername(doctorDataMap.get("username"));
+            doctorDTO.setPassword(doctorDataMap.get("password"));
+            doctorDTO.setConfirmPassword(doctorDataMap.get("confirmPassword"));
+            doctorDTO.setEmail(doctorDataMap.get("email"));
+            doctorDTO.setPhone(doctorDataMap.get("phone"));
+            doctorDTO.setFirstName(doctorDataMap.get("firstName"));
+            doctorDTO.setLastName(doctorDataMap.get("lastName"));
+            doctorDTO.setGender(doctorDataMap.get("gender"));
+            doctorDTO.setAddress(doctorDataMap.getOrDefault("address", null));
+            doctorDTO.setAvatarUpload(avatarUpload);
+            doctorDTO.setBirthDate(dateFormat.parse(doctorDataMap.get("birthDate")));
+             
+            DoctorLicenseDTO doctorLicense = new DoctorLicenseDTO();
+            
+            doctorLicense.setLicenseNumber(doctorDataMap.get("licenseNumber"));
+            doctorLicense.setSpecialtyId(Long.parseLong(doctorDataMap.get("specialistId")));
+            doctorLicense.setIssued(dateFormat.parse(doctorDataMap.get("issuedDate")));
+            doctorLicense.setExpiry(dateFormat.parse(doctorDataMap.get("expiryDate")));
+
+            // SỬ DỤNG VALIDATOR ĐỂ KIỂM TRA DTO
+            ResponseEntity<?> errorResponse = validationUtils.getValidationErrorResponse(doctorDTO);
+            if (errorResponse != null)
+                return errorResponse;
+
+            // TIẾN HÀNH TẠO ĐỐI TƯỢNG
+            DoctorProfileDTO dto_response = userService.addDoctorUser(doctorDTO, doctorLicense);
+            
+            return ResponseEntity.status(HttpStatus.CREATED).body(dto_response);
+
+        } catch (ParseException ex) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(Collections.singletonMap("birthDate", "Định dạng ngày không hợp lệ!"));
+        }
     }
 
 }

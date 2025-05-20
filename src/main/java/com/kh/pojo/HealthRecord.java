@@ -37,7 +37,7 @@ import java.util.Set;
     @NamedQuery(name = "HealthRecord.findByCreatedAt", query = "SELECT h FROM HealthRecord h WHERE h.createdAt = :createdAt"),
     @NamedQuery(name = "HealthRecord.findByUpdatedAt", query = "SELECT h FROM HealthRecord h WHERE h.updatedAt = :updatedAt")})
 public class HealthRecord implements Serializable {
-
+    
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -56,6 +56,17 @@ public class HealthRecord implements Serializable {
     @Size(max = 65535)
     @Column(name = "chronic_conditions")
     private String chronicConditions;
+    // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
+    @Column(name = "weight")
+    private Float weight;
+    @Column(name = "height")
+    private Float height;
+    @Size(max = 20)
+    @Column(name = "blood_pressure")
+    private String bloodPressure;
+    @Size(max = 20)
+    @Column(name = "blood_sugar")
+    private String bloodSugar;
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
@@ -91,13 +102,6 @@ public class HealthRecord implements Serializable {
         this.medicalHistory = medicalHistory;
     }
 
-    public String getAllergies() {
-        return allergies;
-    }
-
-    public void setAllergies(String allergies) {
-        this.allergies = allergies;
-    }
 
     public String getChronicConditions() {
         return chronicConditions;
@@ -162,6 +166,47 @@ public class HealthRecord implements Serializable {
     @Override
     public String toString() {
         return "com.kh.pojo.HealthRecord[ id=" + id + " ]";
+    }
+
+    public String getAllergies() {
+        return allergies;
+    }
+
+    public void setAllergies(String allergies) {
+        this.allergies = allergies;
+    }
+
+
+    public Float getWeight() {
+        return weight;
+    }
+
+    public void setWeight(Float weight) {
+        this.weight = weight;
+    }
+
+    public Float getHeight() {
+        return height;
+    }
+
+    public void setHeight(Float height) {
+        this.height = height;
+    }
+
+    public String getBloodPressure() {
+        return bloodPressure;
+    }
+
+    public void setBloodPressure(String bloodPressure) {
+        this.bloodPressure = bloodPressure;
+    }
+
+    public String getBloodSugar() {
+        return bloodSugar;
+    }
+
+    public void setBloodSugar(String bloodSugar) {
+        this.bloodSugar = bloodSugar;
     }
     
 }
