@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.kh.pojo;
 
 import com.kh.dtos.UserDTO;
@@ -175,8 +171,6 @@ public class User implements Serializable {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "doctorId")
     private Set<DoctorLicense> doctorLicenseSet;
 
-    @OneToMany(mappedBy = "verifiedBy")
-    private Set<DoctorLicense> doctorLicenseSet1;
 
     // Constructor
 
@@ -413,13 +407,7 @@ public class User implements Serializable {
         this.doctorLicenseSet = doctorLicenseSet;
     }
 
-    public Set<DoctorLicense> getDoctorLicenseSet1() {
-        return doctorLicenseSet1;
-    }
 
-    public void setDoctorLicenseSet1(Set<DoctorLicense> doctorLicenseSet1) {
-        this.doctorLicenseSet1 = doctorLicenseSet1;
-    }
 
     @Override
     public int hashCode() {

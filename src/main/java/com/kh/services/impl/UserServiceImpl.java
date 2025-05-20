@@ -1,5 +1,7 @@
 package com.kh.services.impl;
 
+import com.kh.dtos.DoctorLicenseDTO;
+import com.kh.dtos.DoctorProfileDTO;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -16,7 +18,9 @@ import org.springframework.stereotype.Service;
 
 import com.kh.dtos.UserDTO;
 import com.kh.enums.UserRole;
+import com.kh.pojo.DoctorLicense;
 import com.kh.pojo.User;
+import com.kh.repositories.DoctorLisenceRepository;
 import com.kh.repositories.UserRepository;
 import com.kh.services.UserService;
 
@@ -25,6 +29,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private DoctorLisenceRepository doctorRepository;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
@@ -105,5 +112,44 @@ public class UserServiceImpl implements UserService {
         User user = this.userRepository.getUserByUsername(username);
 
         return new UserDTO(user.getUsername(), user.getPassword());
+    }
+    
+    @Override
+    public DoctorProfileDTO addDoctorUser(UserDTO doctorDTO, DoctorLicenseDTO doctorLicenseDTO) throws FileUploadException{
+       try {
+            // KIỂM TRA MẬT KHẨU XÁC NHẬN
+            if (!doctorDTO.getPassword().equals(doctorDTO.getConfirmPassword())) {
+                throw new RuntimeException("Mật khẩu xác nhận không khớp với mật khẩu của bạn!");
+            }
+
+            
+            
+            // MÃ HOÁ MẬT KHẨU
+            String hashedPassword = this.passwordEncoder.encode(doctorDTO.getPassword());
+
+            // UPLOAD ẢNH LÊN CLOUDINARY
+            String uploadedAvatarUrl = doctorDTO.getAvatarUpload() != null ?
+                    fileUploadUtils.uploadFile(doctorDTO.getAvatarUpload()) : null;
+
+            // CHUYỂN DTO THÀNH OBJECT
+            User doctor = doctorDTO.toObject(doctorDTO, UserRole.DOCTOR, hashedPassword, uploadedAvatarUrl);
+            
+            // TODO: Thêm chứng chỉ 
+            
+            
+            // TIẾN HÀNH LƯU USER VÀO TRONG DATABASE
+            User savedUser = this.userRepository.addUser(doctor);
+            doctorDTO.setAvatar(savedUser.getAvatar());
+            
+            DoctorLicense doctorLicense = doctorRepository.addDoctorLisence(doctorLicenseDTO.toObject(savedUser));
+            doctorLicenseDTO.setDoctorId(doctorLicense.getId());
+            
+            DoctorProfileDTO doctorProfileDTO = new DoctorProfileDTO(doctorDTO, doctorLicenseDTO);
+            
+            return doctorProfileDTO;
+
+        } catch (FileUploadException e) {
+            throw new FileUploadException("Không thể tải ảnh lên!");
+        }
     }
 }
