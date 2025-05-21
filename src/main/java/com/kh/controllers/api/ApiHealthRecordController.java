@@ -2,9 +2,11 @@ package com.kh.controllers.api;
 
 import com.kh.dtos.HealthRecordDTO;
 import com.kh.dtos.PatientProfileDTO;
+import com.kh.enums.UserRole;
 import com.kh.services.HealthRecordService;
 import com.kh.services.UserService;
 
+import com.kh.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -20,16 +22,45 @@ public class ApiHealthRecordController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private SecurityUtils securityUtils;
+
     /**
      * Endpoints: {@code GET /api/secure/health-records}
+     * <p>
      * Lấy hồ sơ sức khỏe của chính bệnh nhân đang đăng nhập
+     * </p>
      */
+    @GetMapping("/secure/health-records")
+    public ResponseEntity<?> getHealthRecord(Authentication auth) {
+        // KIỂM TRA QUYỀN
+        securityUtils.requireRole(auth, UserRole.PATIENT);
 
+        // Tiến hành truy vấn dữ liệu
+        HealthRecordDTO dto = this.healthRecordService.getHealthRecord(auth.getName());
+
+        return ResponseEntity.ok(dto);
+    }
 
     /**
      * Endpoints: {@code PUT /api/secure/health-records}
+     * <p>
      * Cập nhật hồ sơ sức khỏe của chính bệnh nhân đang đăng nhập
+     * </p>
      */
+    @PutMapping("/secure/health-records")
+    public ResponseEntity<?> putHealthRecord(
+            @RequestBody HealthRecordDTO healthRecordDTO,
+            Authentication auth
+    ) {
+        // KIỂM TRA QUYỀN
+        securityUtils.requireRole(auth, UserRole.PATIENT);
+
+        // Tiến hành cập nhật dữ liệu
+        HealthRecordDTO dto = this.healthRecordService.putHealthRecord(auth.getName(), healthRecordDTO);
+
+        return ResponseEntity.ok(dto);
+    }
 
     /**
      * Endpoints: {@code GET /api/secure/health-records/{id}}
