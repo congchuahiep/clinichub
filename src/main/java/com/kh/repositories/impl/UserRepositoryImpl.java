@@ -88,8 +88,35 @@ public class UserRepositoryImpl extends AbstractRepository implements UserReposi
     @Override
     public Optional<User> getUserByUsername(String username) {
         Session session = getCurrentSession();
-        Query<User> query = session.createNamedQuery("User.findByUsername", User.class);
+        Query<User> query = session.createQuery(
+                "FROM User WHERE username = :username AND isActive = true",
+                User.class
+        );
         query.setParameter("username", username);
+
+        try {
+            return Optional.ofNullable(query.getSingleResult());
+        } catch (NoResultException e) {
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Lấy đối tượng User từ cơ sở dữ liệu bằng username
+     *
+     * @param username - Tên người dùng
+     * @return Người dùng khớp với tên người dùng
+     * @throws UsernameNotFoundException Nếu như người dùng không tồn tại
+     */
+    @Override
+    public Optional<User> getDoctorByUsername(String username) {
+        Session session = getCurrentSession();
+        Query<User> query = session.createQuery(
+                "FROM User WHERE username = :username AND role = :role AND isActive = true",
+                User.class
+        );
+        query.setParameter("username", username);
+        query.setParameter("role", UserRole.DOCTOR);
 
         try {
             return Optional.ofNullable(query.getSingleResult());

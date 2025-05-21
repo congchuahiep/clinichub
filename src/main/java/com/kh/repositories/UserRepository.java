@@ -23,6 +23,8 @@ public interface UserRepository {
 
     Optional<User> getUserByUsername(String username);
 
+    Optional<User> getDoctorByUsername(String username);
+
     User addUser(User user) throws UsernameAlreadyExistsException, EmailAlreadyExistsException, IllegalStateException;
     
     Optional<User> findById(Long id);

@@ -29,6 +29,7 @@ import com.kh.utils.ValidationUtils;
 @RestController
 @RequestMapping("/api")
 public class ApiUserController {
+
     @Autowired
     private UserService userService;
 
@@ -52,8 +53,9 @@ public class ApiUserController {
 
         // VALIDATE DỮ LIỆU
         ResponseEntity<?> errorResponse = validationUtils.getValidationErrorResponse(userDTO);
-        if (errorResponse != null)
+        if (errorResponse != null) {
             return errorResponse;
+        }
 
         // TIỀN HÀNH XÁC THỰC NGƯỜI DÙNG VÀ TẠO TOKEN
         try {
@@ -61,9 +63,7 @@ public class ApiUserController {
             String token = securityUtils.generateToken(userDTO.getUsername());
             // Trả về JWT token cho người dùng
             return ResponseEntity.ok(Collections.singletonMap("token", token));
-        }
-
-        // XỬ LÝ CÁC NGOẠI LỆ
+        } // XỬ LÝ CÁC NGOẠI LỆ
         catch (BadCredentialsException e) {
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
@@ -71,7 +71,7 @@ public class ApiUserController {
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Collections.singletonMap("error", "Lỗi khi tạo JWT!"));
+                    .body(Collections.singletonMap("error", "Lỗi khi tạo JWT!: " + e.getMessage()));
         }
     }
 
@@ -79,13 +79,13 @@ public class ApiUserController {
      * Endpoint: {@code GET /api/patient-register/}
      *
      * <p>
-     * Dùng để đăng ký người dùng loại bệnh nhân. Các trường cần đăng ký được định
-     * nghĩa tại {@link com.kh.dtos.UserDTO}
+     * Dùng để đăng ký người dùng loại bệnh nhân. Các trường cần đăng ký được
+     * định nghĩa tại {@link com.kh.dtos.UserDTO}
      * </p>
      *
      * @param patientDataMap Phần form-data của bệnh nhân, lưu trữ các thông tin
-     *                       cá nhân
-     * @param avatarUpload   Ảnh avatar của bệnh nhân upload
+     * cá nhân
+     * @param avatarUpload Ảnh avatar của bệnh nhân upload
      * @return Reponse JSON đối tượng user mới tạo
      */
     @PostMapping(value = "/patient-register", consumes = "multipart/form-data")
@@ -113,8 +113,9 @@ public class ApiUserController {
 
             // SỬ DỤNG VALIDATOR ĐỂ KIỂM TRA DTO
             ResponseEntity<?> errorResponse = validationUtils.getValidationErrorResponse(patientDTO);
-            if (errorResponse != null)
+            if (errorResponse != null) {
                 return errorResponse;
+            }
 
             // TIẾN HÀNH TẠO ĐỐI TƯỢNG
             UserDTO dto_response = userService.addPatientUser(patientDTO);
@@ -173,8 +174,9 @@ public class ApiUserController {
 
             // SỬ DỤNG VALIDATOR ĐỂ KIỂM TRA DTO
             ResponseEntity<?> errorResponse = validationUtils.getValidationErrorResponse(doctorDTO);
-            if (errorResponse != null)
+            if (errorResponse != null) {
                 return errorResponse;
+            }
 
             // TIẾN HÀNH TẠO ĐỐI TƯỢNG
             DoctorProfileDTO dto_response = userService.addDoctorUser(doctorDTO, doctorLicenseDTO, hospitalId);

@@ -15,25 +15,32 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/patient-profile")
 public class ApiPatientProfileController {
 
-    @Autowired
-    private HealthRecordService healthRecordService;
-
-    @GetMapping("/health-records/{patientId}")
-    public ResponseEntity<?> getHealthRecord(@PathVariable Long patientId, Principal principal) {
-        // Giả sử lấy doctorId từ principal
-        Long doctorId = getDoctorIdFromPrincipal(principal);
-
-        PatientProfileDTO dto = healthRecordService.getHealthRecord(doctorId, patientId);
-        if (dto == null) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Collections.singletonMap("error", "Bạn không có quyền xem hồ sơ bệnh nhân này"));
-        }
-        return ResponseEntity.ok(dto);
-    }
-
-    private Long getDoctorIdFromPrincipal(Principal principal) {
-        // TODO: Implement lấy doctorId từ principal (token hoặc username)
-        // Ví dụ giả lập
-        return 1L;
+//    @Autowired
+//    private HealthRecordService healthRecordService;
+//
+//    @GetMapping("/health-records/{id}")
+//    public ResponseEntity<?> getHealthRecord(@PathVariable("id") String patientId, Principal principal) {
+//        // Giả sử lấy doctorId từ principal
+//        Long doctorId = getDoctorIdFromPrincipal(principal);
+//
+//        PatientProfileDTO dto = healthRecordService.getHealthRecord(doctorId, Long.parseLong(patientId));
+//        if (dto == null) {
+//            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+//                    .body(Collections.singletonMap("error", "Bạn không có quyền xem hồ sơ bệnh nhân này"));
+//        }
+//        return ResponseEntity.ok(dto);
+//    }
+//
+//    private Long getDoctorIdFromPrincipal(Principal principal) {
+//        // TODO: Implement lấy doctorId từ principal (token hoặc username)
+//        // Ví dụ giả lập
+//        return 1L;
+//    }
+    
+    
+    private Long getPatientIdByUsername(String username) {
+        // TODO: Thực hiện truy vấn user theo username, lấy ID bệnh nhân
+        // Ví dụ gọi UserService.getUserByUsername hoặc repo
+        return 1L; // giả sử trả về 1
     }
 }

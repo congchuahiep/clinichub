@@ -2,6 +2,7 @@ package com.kh.services;
 
 import com.kh.dtos.DoctorLicenseDTO;
 import com.kh.dtos.DoctorProfileDTO;
+import com.kh.dtos.PatientProfileDTO;
 import com.kh.exceptions.FileUploadException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 

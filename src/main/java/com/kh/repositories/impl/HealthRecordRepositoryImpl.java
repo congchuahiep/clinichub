@@ -58,12 +58,16 @@ public class HealthRecordRepositoryImpl implements HealthRecordRepository {
 
     @Override
     public boolean existsAppointmentBetweenDoctorAndPatient(Long doctorId, Long patientId) {
-        String jpql = "SELECT COUNT(a) FROM Appointment a WHERE a.doctorId.id = :doctorId AND a.patientId.id = :patientId " +
-                      "AND a.status IN ('scheduled', 'completed', 'rescheduled')";
-        Long count = em.createQuery(jpql, Long.class)
-                       .setParameter("doctorId", doctorId)
-                       .setParameter("patientId", patientId)
-                       .getSingleResult();
+        String hql =
+                "SELECT COUNT(a) " +
+                        "FROM Appointment a " +
+                        "WHERE a.doctorId.id = :doctorId AND a.patientId.id = :patientId " +
+                        "AND a.status IN ('scheduled', 'completed', 'rescheduled')";
+
+        Long count = em.createQuery(hql, Long.class)
+                .setParameter("doctorId", doctorId)
+                .setParameter("patientId", patientId)
+                .getSingleResult();
         return count != null && count > 0;
     }
 }

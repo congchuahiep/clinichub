@@ -6,20 +6,21 @@ import { useNavigate } from "react-router-dom";
 
 const RegisterForm = ({ userType }) => {
   const commonInfo = [
-    { title: "Tên", field: "firstName", type: "text" },
-    { title: "Họ và tên lót", field: "lastName", type: "text" },
-    { title: "Số điện thoại", field: "phone", type: "tel" },
-    { title: "Email", field: "email", type: "email" },
-    { title: "Tên đăng nhập", field: "username", type: "text" },
-    { title: "Mật khẩu", field: "password", type: "password" },
-    { title: "Xác nhận mật khẩu", field: "confirm", type: "password" },
+    { title: "Tên", field: "firstName", type: "text", required: true },
+    { title: "Họ và tên lót", field: "lastName", type: "text", required: true },
+    { title: "Số điện thoại", field: "phone", type: "tel", required: true },
+    { title: "Email", field: "email", type: "email", required: true },
+    { title: "Tên đăng nhập", field: "username", type: "text", required: true },
+    { title: "Mật khẩu", field: "password", type: "password", required: true },
+    { title: "Xác nhận mật khẩu", field: "confirm", type: "password", required: true },
+    { title: "Ngày sinh", field: "birthDate", type: "date", required: true },
   ];
 
   const doctorExtraInfo = [
-    { title: "Số giấy phép hành nghề", field: "licenseNumber", type: "text" },
-    { title: "Chuyên khoa", field: "specialtyId", type: "number" },
-    { title: "Ngày cấp", field: "issued", type: "date" },
-    { title: "Ngày hết hạn", field: "expiry", type: "date" },
+    { title: "Số giấy phép hành nghề", field: "licenseNumber", type: "text", required: true },
+    { title: "Chuyên khoa", field: "specialtyId", type: "number", required: true },
+    { title: "Ngày cấp", field: "issued", type: "date", required: true },
+    { title: "Ngày hết hạn", field: "expiry", type: "date", required: true },
   ];
 
   const info = userType === "doctor" ? [...commonInfo, ...doctorExtraInfo] : commonInfo;
@@ -34,11 +35,42 @@ const RegisterForm = ({ userType }) => {
     setUser({ ...user, [field]: value });
   };
 
+  // Format ngày sang yyyy-MM-dd
+  const formatDate = (dateValue) => {
+    if (!dateValue) return "";
+    if (typeof dateValue === "string") return dateValue; // nếu đã là string thì giữ nguyên
+    const yyyy = dateValue.getFullYear();
+    const mm = (dateValue.getMonth() + 1).toString().padStart(2, "0");
+    const dd = dateValue.getDate().toString().padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
   const register = async (e) => {
     e.preventDefault();
 
+    // Kiểm tra mật khẩu xác nhận
     if (user.password !== user.confirm) {
       setMsg("Mật khẩu KHÔNG khớp");
+      return;
+    }
+
+    // Kiểm tra các trường bắt buộc
+    for (const field of commonInfo) {
+      if (field.required && !user[field.field]) {
+        setMsg(`Vui lòng nhập trường "${field.title}"`);
+        return;
+      }
+    }
+    if (userType === "doctor") {
+      for (const field of doctorExtraInfo) {
+        if (field.required && !user[field.field]) {
+          setMsg(`Vui lòng nhập trường "${field.title}"`);
+          return;
+        }
+      }
+    }
+    if (!user.gender) {
+      setMsg("Vui lòng chọn giới tính");
       return;
     }
 
@@ -46,21 +78,25 @@ const RegisterForm = ({ userType }) => {
 
     for (let key in user) {
       if (key !== "confirm") {
-        if (key === "issued" || key === "expiry") {
-          // Chuyển ngày sang ISO string, backend dễ parse
-          form.append(key, new Date(user[key]).toISOString());
+        if (key === "birthDate" || key === "issued" || key === "expiry") {
+          form.append(key, formatDate(user[key]));
         } else {
           form.append(key, user[key]);
         }
       }
     }
 
-    form.append("avatar", avatar.current.files[0]);
+    if (avatar.current.files.length > 0) {
+      form.append("avatar", avatar.current.files[0]);
+    }
+
     form.append("userType", userType);
 
     try {
       setLoading(true);
-      await Apis.post(endpoints["register"], form, {
+      // Gọi đúng API backend
+      const apiEndpoint = userType === "patient" ? endpoints["patient-register"] : endpoints["doctor-register"];
+      await Apis.post(apiEndpoint, form, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       nav("/login");
@@ -89,9 +125,22 @@ const RegisterForm = ({ userType }) => {
             className="mt-3 mb-1"
             type={i.type}
             placeholder={i.title}
-            required
+            required={i.required}
           />
         ))}
+
+        <Form.Group className="mt-3 mb-1">
+          <Form.Label>Giới tính</Form.Label>
+          <Form.Select
+            value={user.gender || ""}
+            onChange={(e) => setState(e.target.value, "gender")}
+            required
+          >
+            <option value="">-- Chọn giới tính --</option>
+            <option value="male">Nam</option>
+            <option value="female">Nữ</option>
+          </Form.Select>
+        </Form.Group>
 
         <Form.Control
           ref={avatar}
@@ -112,7 +161,6 @@ const RegisterForm = ({ userType }) => {
     </>
   );
 };
-
 
 function RegisterTabs() {
   return (
