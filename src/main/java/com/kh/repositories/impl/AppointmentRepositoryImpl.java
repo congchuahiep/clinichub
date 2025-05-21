@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.List;
 
 @Repository
 @Transactional
@@ -46,5 +47,26 @@ public class AppointmentRepositoryImpl extends AbstractRepository implements App
                 .getSingleResult();
 
         return count > 0;
+    }
+    
+    
+    // Phương thức lấy danh sách lịch hẹn của bệnh nhân
+    @Override
+    public List<Appointment> findByPatientId(Long patientId) {
+        Session session = getCurrentSession();
+        String hql = "FROM Appointment a WHERE a.patientId.id = :patientId";
+        return session.createQuery(hql, Appointment.class)
+                .setParameter("patientId", patientId)
+                .getResultList();
+    }
+
+    // Phương thức lấy danh sách lịch hẹn của bác sĩ
+    @Override
+    public List<Appointment> findByDoctorId(Long doctorId) {
+        Session session = getCurrentSession();
+        String hql = "FROM Appointment a WHERE a.doctorId.id = :doctorId";
+        return session.createQuery(hql, Appointment.class)
+                .setParameter("doctorId", doctorId)
+                .getResultList();
     }
 }
