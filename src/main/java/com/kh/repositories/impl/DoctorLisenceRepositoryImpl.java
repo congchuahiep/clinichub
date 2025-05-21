@@ -26,7 +26,7 @@ public class DoctorLisenceRepositoryImpl extends AbstractRepository implements D
             Session session = this.getCurrentSession();
             session.persist(doctorLisence);
             return doctorLisence;
-        }catch(IllegalStateException ex){
+        } catch(IllegalStateException ex){
             return null;
         }
     }

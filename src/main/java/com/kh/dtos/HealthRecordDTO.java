@@ -1,28 +1,19 @@
 package com.kh.dtos;
 
-import java.util.Date;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.kh.pojo.HealthRecord;
-import com.kh.pojo.User;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import java.util.Optional;
 
-public class PatientProfileDTO {
+public class HealthRecordDTO {
 
-    // Thông tin User
+    private Long id;
 
-    private UserDTO patient;
-
-    // Thông tin HealthRecord
-
+    @Size(max = 65535)
     private String medicalHistory;
 
+    @Size(max = 65535)
     private String allergies;
 
+    @Size(max = 65535)
     private String chronicConditions;
 
     private Float weight;
@@ -33,12 +24,11 @@ public class PatientProfileDTO {
 
     private String bloodSugar;
 
-    // Constructors
+    public HealthRecordDTO() {
+    }
 
-    public PatientProfileDTO() {}
-
-    public PatientProfileDTO(User patient, HealthRecord healthRecord) {
-        this.patient = new UserDTO(patient);
+    public HealthRecordDTO(HealthRecord healthRecord) {
+        this.id = healthRecord.getId();
         this.medicalHistory = healthRecord.getMedicalHistory();
         this.allergies = healthRecord.getAllergies();
         this.chronicConditions = healthRecord.getChronicConditions();
@@ -48,10 +38,13 @@ public class PatientProfileDTO {
         this.bloodSugar = healthRecord.getBloodSugar();
     }
 
+    public Long getId() {
+        return id;
+    }
 
-    // Bạn có thể tạo thêm constructor nhận User và HealthRecord hoặc builder
-
-    // Getters & Setters
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public String getMedicalHistory() {
         return medicalHistory;
@@ -108,6 +101,4 @@ public class PatientProfileDTO {
     public void setBloodSugar(String bloodSugar) {
         this.bloodSugar = bloodSugar;
     }
-    
-
 }
