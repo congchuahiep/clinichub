@@ -14,5 +14,5 @@ public interface UserService extends UserDetailsService {
 
     UserDTO getUserByUsername(String username);
     
-    DoctorProfileDTO addDoctorUser(UserDTO doctorDTO, DoctorLicenseDTO doctorLicense) throws FileUploadException;
+    DoctorProfileDTO addDoctorUser(UserDTO doctorDTO, DoctorLicenseDTO doctorLicense, Long hospitalId) throws FileUploadException;
 }

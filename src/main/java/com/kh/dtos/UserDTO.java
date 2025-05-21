@@ -3,6 +3,7 @@ package com.kh.dtos;
 import java.util.Date;
 
 import com.kh.enums.UserRole;
+import com.kh.pojo.Hospital;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.annotation.JsonFormat;

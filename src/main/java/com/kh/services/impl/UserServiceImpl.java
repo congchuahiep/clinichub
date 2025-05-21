@@ -7,7 +7,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.kh.exceptions.FileUploadException;
+import com.kh.pojo.Hospital;
 import com.kh.pojo.Specialty;
+import com.kh.repositories.HospitalRepository;
 import com.kh.repositories.SpecialtyRepository;
 import com.kh.utils.FileUploadUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,7 @@ import com.kh.pojo.User;
 import com.kh.repositories.DoctorLisenceRepository;
 import com.kh.repositories.UserRepository;
 import com.kh.services.UserService;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -38,6 +41,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private SpecialtyRepository specialtyRepository;
+
+    @Autowired
+    private HospitalRepository hospitalRepository;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
@@ -123,7 +129,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public DoctorProfileDTO addDoctorUser(UserDTO doctorDTO, DoctorLicenseDTO doctorLicenseDTO) throws FileUploadException {
+    @Transactional
+    public DoctorProfileDTO addDoctorUser(UserDTO doctorDTO, DoctorLicenseDTO doctorLicenseDTO, Long hospitalId) throws FileUploadException {
         try {
             // KIỂM TRA MẬT KHẨU XÁC NHẬN
             if (!doctorDTO.getPassword().equals(doctorDTO.getConfirmPassword())) {
@@ -133,6 +140,10 @@ public class UserServiceImpl implements UserService {
             // Kiểm tra và lấy specialist
             Specialty specialty = specialtyRepository.findById(doctorLicenseDTO.getSpecialtyId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy chuyên khoa với ID: " + doctorLicenseDTO.getSpecialtyId()));
+
+            // Kiểm tra và lấy hospital
+            Hospital hospital = hospitalRepository.findById(hospitalId)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy bệnh viện với ID: " + hospitalId));
 
             // MÃ HOÁ MẬT KHẨU
             String hashedPassword = this.passwordEncoder.encode(doctorDTO.getPassword());
@@ -150,10 +161,13 @@ public class UserServiceImpl implements UserService {
             DoctorLicense license = doctorLicenseDTO.toObject(savedUser, specialty);
             doctorLisenceRepository.addDoctorLisence(license);
 
+            // Lưu bác sĩ vào bệnh viện
+            hospitalRepository.registerDoctorToHospital(hospital, doctor);
+
             // Cập nhật thông tin vào DTO để trả về
             doctorDTO.setAvatar(savedUser.getAvatar());
 
-            return new DoctorProfileDTO(doctorDTO, doctorLicenseDTO);
+            return new DoctorProfileDTO(doctorDTO, doctorLicenseDTO, hospital.getName());
 
         } catch (FileUploadException e) {
             throw new FileUploadException("Không thể tải ảnh lên!");

@@ -11,10 +11,12 @@ package com.kh.dtos;
 public class DoctorProfileDTO {
     private UserDTO doctorDTO;
     private DoctorLicenseDTO doctorLicenseDTO;
+    private String hospitalName;
     
-    public DoctorProfileDTO(UserDTO userDTO, DoctorLicenseDTO doctorLicenseDTO) {
+    public DoctorProfileDTO(UserDTO userDTO, DoctorLicenseDTO doctorLicenseDTO, String hospitalName) {
         this.doctorDTO = userDTO;
         this.doctorLicenseDTO = doctorLicenseDTO;
+        this.hospitalName = hospitalName;
     }
 
     /**
@@ -44,6 +46,12 @@ public class DoctorProfileDTO {
     public void setDoctorLicenseDTO(DoctorLicenseDTO doctorLicenseDTO) {
         this.doctorLicenseDTO = doctorLicenseDTO;
     }
-    
-    
+
+    public String getHospitalName() {
+        return hospitalName;
+    }
+
+    public void setHospitalName(String hospitalName) {
+        this.hospitalName = hospitalName;
+    }
 }

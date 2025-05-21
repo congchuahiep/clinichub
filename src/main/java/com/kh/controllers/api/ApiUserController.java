@@ -127,9 +127,24 @@ public class ApiUserController {
         }
     }
 
+    /**
+     * Endpoint: {@code GET /api/doctor-register/}
+     *
+     * <p>
+     * Dùng để đăng ký người dùng loại bệnh nhân. Các trường cần đăng ký được định
+     * nghĩa tại {@link com.kh.dtos.DoctorProfileDTO}
+     * </p>
+     *
+     * @param doctorDataMap Phần form-data của bác sĩ, lưu trữ các thông tin
+     *                       cá nhân và bằng lưuu hành nghề
+     * @param hospitalId Id của bệnh viện mà bác sĩ khám
+     * @param avatarUpload   Ảnh avatar của bác sĩ upload
+     * @return Reponse JSON đối tượng user mới tạo
+     */
     @PostMapping("/doctor-register")
     public ResponseEntity<?> registerDoctor(
             @RequestParam Map<String, String> doctorDataMap,
+            @RequestParam("hospitalId") Long hospitalId,
             @RequestParam(value = "avatar", required = false) MultipartFile avatarUpload
     ) {
         try {
@@ -162,7 +177,7 @@ public class ApiUserController {
                 return errorResponse;
 
             // TIẾN HÀNH TẠO ĐỐI TƯỢNG
-            DoctorProfileDTO dto_response = userService.addDoctorUser(doctorDTO, doctorLicenseDTO);
+            DoctorProfileDTO dto_response = userService.addDoctorUser(doctorDTO, doctorLicenseDTO, hospitalId);
 
             return ResponseEntity.status(HttpStatus.CREATED).body(dto_response);
 
