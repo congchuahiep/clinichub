@@ -75,8 +75,8 @@ public class Appointment implements Serializable {
     @ManyToOne(optional = false)
     private User patientId;
 
-    @OneToMany(mappedBy = "appointmentId")
-    private Set<MedicalRecord> medicalRecordSet;
+    @OneToOne(mappedBy = "appointment", cascade = CascadeType.ALL)
+    private MedicalRecord medicalRecord;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "appointmentId")
     private Set<Payment> paymentSet;
@@ -160,12 +160,12 @@ public class Appointment implements Serializable {
         this.patientId = patientId;
     }
 
-    public Set<MedicalRecord> getMedicalRecordSet() {
-        return medicalRecordSet;
+    public MedicalRecord getMedicalRecord() {
+        return medicalRecord;
     }
 
-    public void setMedicalRecordSet(Set<MedicalRecord> medicalRecordSet) {
-        this.medicalRecordSet = medicalRecordSet;
+    public void setMedicalRecord(MedicalRecord medicalRecord) {
+        this.medicalRecord = medicalRecord;
     }
 
     public Set<Payment> getPaymentSet() {

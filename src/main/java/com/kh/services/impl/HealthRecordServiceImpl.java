@@ -4,6 +4,7 @@ import com.kh.dtos.HealthRecordDTO;
 import com.kh.dtos.PatientProfileDTO;
 import com.kh.pojo.HealthRecord;
 import com.kh.pojo.User;
+import com.kh.repositories.AppointmentRepository;
 import com.kh.repositories.HealthRecordRepository;
 import com.kh.repositories.UserRepository;
 import com.kh.services.HealthRecordService;
@@ -21,14 +22,17 @@ public class HealthRecordServiceImpl implements HealthRecordService {
     private HealthRecordRepository healthRecordRepository;
 
     @Autowired
+    private AppointmentRepository appointmentRepository;
+
+    @Autowired
     private UserRepository userRepository;
 
     @Override
     public HealthRecordDTO getHealthRecord(String patientUsername) {
-        User patient = userRepository.getUserByUsername(patientUsername)
+        User patient = userRepository.findByUsername(patientUsername)
                 .orElseThrow(() -> new RuntimeException("Không thể tìm thấy bệnh nhân!"));
 
-        HealthRecord healthRecord = healthRecordRepository.findByPatientId(patient.getId())
+        HealthRecord healthRecord = healthRecordRepository.findById(patient.getId())
                 .orElseThrow(() -> new RuntimeException("Lỗi! Bệnh nhân này không có hồ sơ sức khoẻ?"));
 
         return new HealthRecordDTO(healthRecord);
@@ -36,10 +40,10 @@ public class HealthRecordServiceImpl implements HealthRecordService {
 
     @Override
     public HealthRecordDTO putHealthRecord(String patientUsername, HealthRecordDTO healthRecordDTO) {
-        User patient = userRepository.getUserByUsername(patientUsername)
+        User patient = userRepository.findByUsername(patientUsername)
                 .orElseThrow(() -> new RuntimeException("Không thể tìm thấy bệnh nhân!"));
 
-        HealthRecord healthRecord = healthRecordRepository.findByPatientId(patient.getId())
+        HealthRecord healthRecord = healthRecordRepository.findById(patient.getId())
                 .orElseThrow(() -> new RuntimeException("Lỗi! Bệnh nhân này không có hồ sơ sức khoẻ?"));
 
         // Cập nhật các trường trong healthRecord từ dto
@@ -60,17 +64,17 @@ public class HealthRecordServiceImpl implements HealthRecordService {
 
     @Override
     public PatientProfileDTO getPatientProfile(Long patientId, String doctorUsername) {
-        User doctor = userRepository.getDoctorByUsername(doctorUsername)
+        User doctor = userRepository.findDoctorByUsername(doctorUsername)
                 .orElseThrow(() -> new UsernameNotFoundException("Tài khoản bác sĩ không tồn tại!"));
 
-        User patient = userRepository.getUserById(patientId)
+        User patient = userRepository.findById(patientId)
                 .orElseThrow(() -> new RuntimeException("Không thể tìm thấy bệnh nhân!"));
 
-        if (!this.healthRecordRepository.existsAppointmentBetweenDoctorAndPatient(doctor.getId(), patient.getId())) {
+        if (!this.appointmentRepository.existsAppointmentBetweenDoctorAndPatient(doctor.getId(), patient.getId())) {
             throw new RuntimeException("Bác sĩ chỉ được xem hồ sơ của bệnh nhân đã có lịch hẹn");
         }
 
-        HealthRecord healthRecord = healthRecordRepository.findByPatientId(patientId)
+        HealthRecord healthRecord = healthRecordRepository.findById(patientId)
                 .orElseThrow(() -> new RuntimeException("Lỗi! Bệnh nhân này không có hồ sơ sức khoẻ?"));
 
         return new PatientProfileDTO(patient, healthRecord);
@@ -78,13 +82,13 @@ public class HealthRecordServiceImpl implements HealthRecordService {
 
     @Override
     public HealthRecordDTO updateHealthRecord(Long patientId, String doctorUsername, HealthRecordDTO healthRecordDTO) {
-        HealthRecord healthRecord = healthRecordRepository.findByPatientId(patientId)
+        HealthRecord healthRecord = healthRecordRepository.findById(patientId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ sức khỏe"));
 
-        User doctor = userRepository.getDoctorByUsername(doctorUsername)
+        User doctor = userRepository.findDoctorByUsername(doctorUsername)
                 .orElseThrow(() -> new UsernameNotFoundException("Tài khoản bác sĩ không tồn tại!"));
 
-        if (!this.healthRecordRepository.existsAppointmentBetweenDoctorAndPatient(doctor.getId(), patientId)) {
+        if (!this.appointmentRepository.existsAppointmentBetweenDoctorAndPatient(doctor.getId(), patientId)) {
             throw new RuntimeException("Bác sĩ chỉ được xem hồ sơ của bệnh nhân đã có lịch hẹn");
         }
 

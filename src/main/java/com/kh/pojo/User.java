@@ -1,25 +1,11 @@
 package com.kh.pojo;
 
 import com.kh.dtos.UserDTO;
-import jakarta.persistence.Basic;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.NamedQueries;
-import jakarta.persistence.NamedQuery;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
@@ -33,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.kh.enums.UserRole;
 
 /**
- *
  * @author congchuahiep
  */
 @Entity
@@ -54,7 +39,7 @@ import com.kh.enums.UserRole;
         @NamedQuery(name = "User.findByGender", query = "SELECT u FROM User u WHERE u.gender = :gender"),
         @NamedQuery(name = "User.findByAvatar", query = "SELECT u FROM User u WHERE u.avatar = :avatar"),
         @NamedQuery(name = "User.findByCreatedAt", query = "SELECT u FROM User u WHERE u.createdAt = :createdAt"),
-        @NamedQuery(name = "User.findByUpdatedAt", query = "SELECT u FROM User u WHERE u.updatedAt = :updatedAt") })
+        @NamedQuery(name = "User.findByUpdatedAt", query = "SELECT u FROM User u WHERE u.updatedAt = :updatedAt")})
 public class User implements Serializable {
 
     @JsonIgnore
@@ -164,8 +149,8 @@ public class User implements Serializable {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "patientId")
     private Set<Review> reviewSet1;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "patientId")
-    private Set<HealthRecord> healthRecordSet;
+    @OneToOne(mappedBy = "patient", cascade = CascadeType.ALL)
+    private HealthRecord healthRecord;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
     private Set<Notification> notificationSet;
@@ -386,13 +371,14 @@ public class User implements Serializable {
         this.reviewSet1 = reviewSet1;
     }
 
-    public Set<HealthRecord> getHealthRecordSet() {
-        return healthRecordSet;
+    public HealthRecord getHealthRecord() {
+        return healthRecord;
     }
 
-    public void setHealthRecordSet(Set<HealthRecord> healthRecordSet) {
-        this.healthRecordSet = healthRecordSet;
+    public void setHealthRecord(HealthRecord healthRecord) {
+        this.healthRecord = healthRecord;
     }
+
 
     public Set<Notification> getNotificationSet() {
         return notificationSet;
@@ -409,7 +395,6 @@ public class User implements Serializable {
     public void setDoctorLicenseSet(Set<DoctorLicense> doctorLicenseSet) {
         this.doctorLicenseSet = doctorLicenseSet;
     }
-
 
 
     @Override

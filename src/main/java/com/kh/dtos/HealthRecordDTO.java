@@ -28,7 +28,7 @@ public class HealthRecordDTO {
     }
 
     public HealthRecordDTO(HealthRecord healthRecord) {
-        this.id = healthRecord.getId();
+        this.id = healthRecord.getPatient().getId();
         this.medicalHistory = healthRecord.getMedicalHistory();
         this.allergies = healthRecord.getAllergies();
         this.chronicConditions = healthRecord.getChronicConditions();

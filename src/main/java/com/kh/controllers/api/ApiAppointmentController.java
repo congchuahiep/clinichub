@@ -1,25 +1,23 @@
- package com.kh.controllers.api;
+package com.kh.controllers.api;
 
 import com.kh.dtos.AppointmentDTO;
 import com.kh.dtos.MedicalRecordDTO;
 import com.kh.enums.UserRole;
+import com.kh.pojo.User;
 import com.kh.services.AppointmentService;
+import com.kh.services.MedicalRecordService;
 import com.kh.utils.SecurityUtils;
 import com.kh.utils.ValidationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.List;
-import org.springframework.web.bind.annotation.GetMapping;
 
 @RestController
 @RequestMapping("/api")
@@ -29,11 +27,14 @@ public class ApiAppointmentController {
     private AppointmentService appointmentService;
 
     @Autowired
+    private MedicalRecordService medicalRecordService;
+
+    @Autowired
     private ValidationUtils validationUtils;
-    
+
     @Autowired
     private SecurityUtils securityUtils;
-    
+
     @PostMapping("/secure/appointments")
     public ResponseEntity<?> addAppointment(
             @RequestParam("doctorId") Long doctorId,
@@ -71,7 +72,7 @@ public class ApiAppointmentController {
                     .body(Collections.singletonMap("appointmentDatetime", "Định dạng ngày giờ không hợp lệ!"));
         }
     }
-    
+
     @GetMapping("/secure/appointments")
     public ResponseEntity<?> getAppointments(Authentication auth) {
         try {
@@ -79,12 +80,35 @@ public class ApiAppointmentController {
 
             // Lấy danh sách các lịch khám (cả bác sĩ và bệnh nhân)
             List<AppointmentDTO> appointments = appointmentService.getAppointments(auth.getName());
-            
+
             return ResponseEntity.ok(appointments);
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Collections.singletonMap("error", "Lỗi khi lấy danh sách lịch khám." + e.getMessage()));
         }
+    }
+
+
+    @PostMapping("/secure/appointments/{id}/medical-records")
+    public ResponseEntity<?> addMedicalRecord(
+            @PathVariable("id") Long appointmentId,
+            @RequestBody MedicalRecordDTO medicalRecordDTO,
+            Authentication auth
+    ) {
+        securityUtils.requireRole(auth, UserRole.DOCTOR);
+
+        medicalRecordDTO.setAppointmentId(appointmentId);
+        medicalRecordDTO.setDoctorId(securityUtils.getCurrentUserId(auth)); // ĐANG LỖI CHỐ NÀY
+
+        // SỬ DỤNG VALIDATOR ĐỂ KIỂM TRA DTO
+        ResponseEntity<?> errorResponse = validationUtils.getValidationErrorResponse(medicalRecordDTO);
+        if (errorResponse != null) {
+            return errorResponse;
+        }
+
+        medicalRecordDTO = medicalRecordService.addMedicalRecord(medicalRecordDTO);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(medicalRecordDTO);
     }
 }

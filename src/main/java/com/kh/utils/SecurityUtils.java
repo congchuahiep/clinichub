@@ -3,6 +3,8 @@ package com.kh.utils;
 import java.util.Date;
 
 import com.kh.enums.UserRole;
+import com.kh.pojo.User;
+import com.kh.repositories.UserRepository;
 import com.kh.services.UserService;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -27,6 +29,10 @@ public class SecurityUtils {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UserRepository userRepository;
+
 
     private static final String SECRET = "12345678901234567890123456789012"; // 32 ký tự (AES key)
     private static final long EXPIRATION_MS = 86400000; // 1 ngày
@@ -114,4 +120,17 @@ public class SecurityUtils {
             throw new AccessDeniedException("Bạn không có quyền truy cập vào trang này!");
         }
     }
+
+    public Long getCurrentUserId(Authentication authentication) {
+        if (authentication == null) {
+            return null;
+        }
+
+        String username = authentication.getName();
+        // Lấy user từ database dựa vào username
+        return userRepository.findByUsername(username)
+                .map(User::getId)
+                .orElse(null);
+    }
+
 }

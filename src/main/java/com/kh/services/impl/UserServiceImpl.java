@@ -3,11 +3,9 @@ package com.kh.services.impl;
 import com.kh.dtos.DoctorLicenseDTO;
 import com.kh.dtos.DoctorProfileDTO;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.kh.dtos.PatientProfileDTO;
 import com.kh.exceptions.FileUploadException;
 import com.kh.pojo.Hospital;
 import com.kh.pojo.Specialty;
@@ -15,8 +13,6 @@ import com.kh.repositories.HospitalRepository;
 import com.kh.repositories.SpecialtyRepository;
 import com.kh.utils.FileUploadUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -63,7 +59,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void authenticate(String username, String password) {
         User user = this.userRepository
-                .getUserByUsername(username)
+                .findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Người dùng không tồn tại!"));
 
         if (!this.passwordEncoder.matches(password, user.getPassword())) {
@@ -85,7 +81,7 @@ public class UserServiceImpl implements UserService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         // Lấy User từ Database
         User user = this.userRepository
-                .getUserByUsername(username)
+                .findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Người dùng không tồn tại!"));
 
         // Tạo danh sách quyền (authorities) cho người dùng. Ở đây, quyền được lấy từ
@@ -123,7 +119,7 @@ public UserDTO addPatientUser(UserDTO patientDTO) throws FileUploadException {
 
         // TẠO VÀ LƯU HEALTH RECORD RỖNG CHO USER MỚI TẠO
         HealthRecord healthRecord = new HealthRecord();
-        healthRecord.setPatientId(savedUser);
+        healthRecord.setPatient(savedUser);
         healthRecord.setMedicalHistory("");
         healthRecord.setAllergies("");
         healthRecord.setChronicConditions("");
@@ -146,7 +142,7 @@ public UserDTO addPatientUser(UserDTO patientDTO) throws FileUploadException {
     @Override
     public UserDTO getUserByUsername(String username) {
         User user = this.userRepository
-                .getUserByUsername(username)
+                .findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Người dùng không tồn tại!"));
 
         return new UserDTO(user.getUsername(), user.getPassword());

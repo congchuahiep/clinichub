@@ -4,22 +4,7 @@
  */
 package com.kh.pojo;
 
-import jakarta.persistence.Basic;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.NamedQueries;
-import jakarta.persistence.NamedQuery;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 
 import java.io.Serializable;
@@ -40,10 +25,11 @@ public class HealthRecord implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Basic(optional = false)
-    @Column(name = "id")
-    private Long id;
+    @OneToOne
+    @MapsId
+    @JoinColumn(name = "id")
+    private User patient;
+
     @Lob
     @Size(max = 65535)
     @Column(name = "medical_history")
@@ -75,23 +61,16 @@ public class HealthRecord implements Serializable {
     private Date updatedAt;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "healthRecordId")
     private Set<MedicalRecord> medicalRecordSet;
-    @JoinColumn(name = "patient_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
-    private User patientId;
 
     public HealthRecord() {
     }
 
-    public HealthRecord(Long id) {
-        this.id = id;
+    public User getPatient() {
+        return patient;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
+    public void setPatient(User user) {
+        this.patient = user;
     }
 
     public String getMedicalHistory() {
@@ -101,7 +80,6 @@ public class HealthRecord implements Serializable {
     public void setMedicalHistory(String medicalHistory) {
         this.medicalHistory = medicalHistory;
     }
-
 
     public String getChronicConditions() {
         return chronicConditions;
@@ -135,39 +113,6 @@ public class HealthRecord implements Serializable {
         this.medicalRecordSet = medicalRecordSet;
     }
 
-    public User getPatientId() {
-        return patientId;
-    }
-
-    public void setPatientId(User patientId) {
-        this.patientId = patientId;
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof HealthRecord)) {
-            return false;
-        }
-        HealthRecord other = (HealthRecord) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public String toString() {
-        return "com.kh.pojo.HealthRecord[ id=" + id + " ]";
-    }
-
     public String getAllergies() {
         return allergies;
     }
@@ -175,7 +120,6 @@ public class HealthRecord implements Serializable {
     public void setAllergies(String allergies) {
         this.allergies = allergies;
     }
-
 
     public Float getWeight() {
         return weight;

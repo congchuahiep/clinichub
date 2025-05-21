@@ -2,6 +2,7 @@ package com.kh.repositories.impl;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.commons.lang3.math.NumberUtils;
 import org.hibernate.Session;
@@ -36,5 +37,23 @@ public class DiseaseRepositoryImpl extends AbstractRepository implements Disease
         q.setMaxResults(PAGE_SIZE);
 
         return q.getResultList();
+    }
+
+    @Override
+    public Optional<Disease> findById(Long id) {
+        Session session = getCurrentSession();
+
+        Query<Disease> query = session.createQuery(
+                "FROM Disease WHERE id = :id",
+                Disease.class
+        );
+
+        query.setParameter("id", id);
+
+        try {
+            return Optional.ofNullable(query.getSingleResult());
+        } catch (Exception e) {
+            return Optional.empty();
+        }
     }
 }

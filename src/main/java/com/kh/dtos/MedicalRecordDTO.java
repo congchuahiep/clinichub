@@ -1,29 +1,31 @@
 package com.kh.dtos;
 
 import java.util.Date;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.kh.pojo.MedicalRecord;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public class MedicalRecordDTO {
 
-    private Long id;                      // ID của bản ghi chẩn đoán
-
     @NotNull
+    private Long appointmentId;           // ID của lịch khám
+
     private Long healthRecordId;          // ID của hồ sơ sức khỏe
 
     @NotNull
     private Long doctorId;                // ID của bác sĩ chẩn đoán
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @NotNull
-    private Long appointmentId;           // ID của lịch khám
-
-    @NotNull
-    private Long diseaseId;               // ID của bệnh (nếu có)
+    private Long diseaseId;              // ID của bệnh (nếu có)
+    private String diseaseName;
 
     @NotBlank
     private String diagnosis;             // Mô tả chẩn đoán
 
-    @NotNull
     private Date diagnosisDate;           // Ngày chẩn đoán
 
     private String prescriptions;         // Đơn thuốc (có thể rỗng)
@@ -32,22 +34,30 @@ public class MedicalRecordDTO {
 
     private String notes;                 // Ghi chú của bác sĩ (có thể rỗng)
 
+    @JsonIgnore
     private Date createdAt;               // Ngày tạo bản ghi
 
+    @JsonIgnore
     private Date updatedAt;               // Ngày cập nhật bản ghi
 
     // Constructor rỗng
     public MedicalRecordDTO() {}
 
+    public MedicalRecordDTO(MedicalRecord medicalRecord) {
+        this.appointmentId = medicalRecord.getAppointment().getId();
+        this.doctorId = medicalRecord.getDoctorId().getId();
+        this.diseaseName = medicalRecord.getDiseaseId() != null ? medicalRecord.getDiseaseId().getName() : null;
+        this.diagnosis = medicalRecord.getDiagnosis();
+        this.diagnosisDate = medicalRecord.getDiagnosisDate();
+        this.healthRecordId = medicalRecord.getHealthRecordId().getPatient().getId();
+        this.notes = medicalRecord.getNotes();
+        this.prescriptions = medicalRecord.getPrescriptions();
+        this.testResults = medicalRecord.getTestResults();
+        this.createdAt = medicalRecord.getCreatedAt();
+        this.updatedAt = medicalRecord.getUpdatedAt();
+    }
+
     // Getters & Setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public Long getHealthRecordId() {
         return healthRecordId;
     }
@@ -134,5 +144,13 @@ public class MedicalRecordDTO {
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getDiseaseName() {
+        return diseaseName;
+    }
+
+    public void setDiseaseName(String diseaseName) {
+        this.diseaseName = diseaseName;
     }
 }

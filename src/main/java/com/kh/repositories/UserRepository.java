@@ -17,16 +17,13 @@ import java.util.Optional;
 public interface UserRepository {
     List<User> getUserList();
 
-    Optional<User> getUserById(long id);
+    Optional<User> findById(long id);
 
-    Optional<User> getDoctorById(long id);
+    Optional<User> findDoctorById(long id);
 
-    Optional<User> getUserByUsername(String username);
+    Optional<User> findByUsername(String username);
 
-    Optional<User> getDoctorByUsername(String username);
+    Optional<User> findDoctorByUsername(String username);
 
     User addUser(User user) throws UsernameAlreadyExistsException, EmailAlreadyExistsException, IllegalStateException;
-    
-    Optional<User> findById(Long id);
-
 }

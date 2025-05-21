@@ -1,7 +1,9 @@
 package com.kh.dtos;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.kh.pojo.Appointment;
+import com.kh.pojo.MedicalRecord;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -12,6 +14,7 @@ import java.util.Date;
 public class AppointmentDTO {
     private Long id;
 
+    @JsonIgnore
     @NotNull(message = "ID bác sĩ không được để trống")
     private Long doctorId;
 
@@ -37,6 +40,8 @@ public class AppointmentDTO {
 
     private UserDTO patient;
 
+    private MedicalRecordDTO medicalRecord;
+
     // Constructor
     public AppointmentDTO() {
     }
@@ -50,6 +55,11 @@ public class AppointmentDTO {
         this.timeSlot = appointment.getTimeSlot().getSlotNumber();
         this.doctor = new UserDTO(appointment.getDoctorId());
         this.patient = new UserDTO(appointment.getPatientId());
+    }
+
+    public AppointmentDTO(Appointment appointment, MedicalRecord medicalRecord) {
+        this(appointment);
+        this.medicalRecord = new MedicalRecordDTO(medicalRecord);
     }
 
     // getters/setters
@@ -123,5 +133,13 @@ public class AppointmentDTO {
 
     public void setTimeSlot(int timeSlot) {
         this.timeSlot = timeSlot;
+    }
+
+    public MedicalRecordDTO getMedicalRecord() {
+        return medicalRecord;
+    }
+
+    public void setMedicalRecord(MedicalRecordDTO medicalRecord) {
+        this.medicalRecord = medicalRecord;
     }
 }

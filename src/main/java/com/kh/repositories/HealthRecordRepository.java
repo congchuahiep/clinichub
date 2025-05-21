@@ -9,15 +9,10 @@ public interface HealthRecordRepository {
 
     Optional<HealthRecord> findById(Long id);
 
-    Optional<HealthRecord> findByPatientId(Long patientId);
-
     List<HealthRecord> findAll();
 
     HealthRecord save(HealthRecord healthRecord);
 
     void delete(Long id);
-
-    boolean existsAppointmentBetweenDoctorAndPatient(Long doctorId, Long patientId);
-
 }
     

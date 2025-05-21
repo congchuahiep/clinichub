@@ -49,7 +49,7 @@ public class UserRepositoryImpl extends AbstractRepository implements UserReposi
     }
 
     @Override
-    public Optional<User> getUserById(long id) {
+    public Optional<User> findById(long id) {
         Session session = getCurrentSession();
         Query<User> query = session.createQuery("FROM User WHERE id = :id", User.class);
         query.setParameter("id", id);
@@ -62,7 +62,7 @@ public class UserRepositoryImpl extends AbstractRepository implements UserReposi
     }
 
     @Override
-    public Optional<User> getDoctorById(long id) {
+    public Optional<User> findDoctorById(long id) {
         Session session = getCurrentSession();
         Query<User> query = session.createQuery(
                 "FROM User WHERE id = :id AND role = :role AND isActive = true",
@@ -86,7 +86,7 @@ public class UserRepositoryImpl extends AbstractRepository implements UserReposi
      * @throws UsernameNotFoundException Nếu như người dùng không tồn tại
      */
     @Override
-    public Optional<User> getUserByUsername(String username) {
+    public Optional<User> findByUsername(String username) {
         Session session = getCurrentSession();
         Query<User> query = session.createQuery(
                 "FROM User WHERE username = :username AND isActive = true",
@@ -109,7 +109,7 @@ public class UserRepositoryImpl extends AbstractRepository implements UserReposi
      * @throws UsernameNotFoundException Nếu như người dùng không tồn tại
      */
     @Override
-    public Optional<User> getDoctorByUsername(String username) {
+    public Optional<User> findDoctorByUsername(String username) {
         Session session = getCurrentSession();
         Query<User> query = session.createQuery(
                 "FROM User WHERE username = :username AND role = :role AND isActive = true",
@@ -147,10 +147,5 @@ public class UserRepositoryImpl extends AbstractRepository implements UserReposi
         }
 
         return user;
-    }
-    
-    @Override
-    public Optional<User> findById(Long id) {
-        return Optional.ofNullable(em.find(User.class, id));
     }
 }
