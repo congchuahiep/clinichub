@@ -6,6 +6,7 @@ import com.kh.pojo.User;
 import com.kh.repositories.HealthRecordRepository;
 import com.kh.repositories.UserRepository;
 import com.kh.services.HealthRecordService;
+import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,45 +23,37 @@ public class HealthRecordServiceImpl implements HealthRecordService {
     private UserRepository userRepository;
 
     @Override
-    public PatientProfileDTO getHealthRecord(Long doctorId, Long patientId) {
-        boolean hasAccess = healthRecordRepository.existsAppointmentBetweenDoctorAndPatient(doctorId, patientId);
-        if (!hasAccess) {
-            return null;
+    public PatientProfileDTO getHealthRecordByPatientId(Long patientId) {
+        User user = userRepository.getUserById(patientId);
+        if (user == null) {
+            throw new RuntimeException("Không tìm thấy bệnh nhân");
         }
 
-        Optional<User> patientOpt = userRepository.findById(patientId);
-        if (!patientOpt.isPresent()) return null;
+        HealthRecord healthRecord = healthRecordRepository.findByPatientId(patientId)
+            .orElse(null);
 
-        Optional<HealthRecord> healthRecordOpt = healthRecordRepository.findByPatientId(patientId);
-
-        return PatientProfileDTO.fromEntities(patientOpt.get(), healthRecordOpt.orElse(null));
+        return PatientProfileDTO.fromEntities(user, healthRecord);
     }
 
     @Override
-    public PatientProfileDTO updateHealthRecord(Long doctorId, Long patientId, PatientProfileDTO updatedDTO) {
-        boolean hasAccess = healthRecordRepository.existsAppointmentBetweenDoctorAndPatient(doctorId, patientId);
-        if (!hasAccess) {
-            return null;
-        }
-
-        Optional<User> patientOpt = userRepository.findById(patientId);
-        if (!patientOpt.isPresent()) return null;
-        User patient = patientOpt.get();
-
+    public PatientProfileDTO updateHealthRecord(Long patientId, PatientProfileDTO dto) {
         HealthRecord healthRecord = healthRecordRepository.findByPatientId(patientId)
-                .orElse(new HealthRecord());
-        healthRecord.setPatientId(patient);
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ sức khỏe"));
 
-        healthRecord.setMedicalHistory(updatedDTO.getMedicalHistory());
-        healthRecord.setAllergies(updatedDTO.getAllergies());
-        healthRecord.setChronicConditions(updatedDTO.getChronicConditions());
-        healthRecord.setWeight(updatedDTO.getWeight());
-        healthRecord.setHeight(updatedDTO.getHeight());
-        healthRecord.setBloodPressure(updatedDTO.getBloodPressure());
-        healthRecord.setBloodSugar(updatedDTO.getBloodSugar());
+        // Cập nhật các trường trong healthRecord từ dto
+        healthRecord.setMedicalHistory(dto.getMedicalHistory());
+        healthRecord.setAllergies(dto.getAllergies());
+        healthRecord.setChronicConditions(dto.getChronicConditions());
+        healthRecord.setWeight(dto.getWeight());
+        healthRecord.setHeight(dto.getHeight());
+        healthRecord.setBloodPressure(dto.getBloodPressure());
+        healthRecord.setBloodSugar(dto.getBloodSugar());
+        healthRecord.setUpdatedAt(new Date());
 
         healthRecordRepository.save(healthRecord);
 
-        return PatientProfileDTO.fromEntities(patient, healthRecord);
+        User user = userRepository.getUserById(patientId);
+        return PatientProfileDTO.fromEntities(user, healthRecord);
     }
 }
+

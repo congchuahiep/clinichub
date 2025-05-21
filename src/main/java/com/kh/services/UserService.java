@@ -6,6 +6,7 @@ import com.kh.exceptions.FileUploadException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 import com.kh.dtos.UserDTO;
+import com.kh.pojo.User;
 
 public interface UserService extends UserDetailsService {
     void authenticate(String username, String password);
@@ -15,4 +16,6 @@ public interface UserService extends UserDetailsService {
     UserDTO getUserByUsername(String username);
     
     DoctorProfileDTO addDoctorUser(UserDTO doctorDTO, DoctorLicenseDTO doctorLicense) throws FileUploadException;
+    
+    User getUserByUsernameFull(String username);
 }

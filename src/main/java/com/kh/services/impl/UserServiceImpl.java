@@ -22,8 +22,10 @@ import org.springframework.stereotype.Service;
 import com.kh.dtos.UserDTO;
 import com.kh.enums.UserRole;
 import com.kh.pojo.DoctorLicense;
+import com.kh.pojo.HealthRecord;
 import com.kh.pojo.User;
 import com.kh.repositories.DoctorLisenceRepository;
+import com.kh.repositories.HealthRecordRepository;
 import com.kh.repositories.UserRepository;
 import com.kh.services.UserService;
 
@@ -44,6 +46,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private FileUploadUtils fileUploadUtils;
+    
+    @Autowired
+    private HealthRecordRepository healthRecordRepository;
 
     @Override
     public void authenticate(String username, String password) {
@@ -87,32 +92,47 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDTO addPatientUser(UserDTO patientDTO) throws FileUploadException {
-        try {
-            // KIỂM TRA MẬT KHẨU XÁC NHẬN
-            if (!patientDTO.getPassword().equals(patientDTO.getConfirmPassword())) {
-                throw new RuntimeException("Mật khẩu xác nhận không khớp với mật khẩu của bạn!");
-            }
-
-            // MÃ HOÁ MẬT KHẨU
-            String hashedPassword = this.passwordEncoder.encode(patientDTO.getPassword());
-
-            // UPLOAD ẢNH LÊN CLOUDINARY
-            String uploadedAvatarUrl = patientDTO.getAvatarUpload() != null ?
-                    fileUploadUtils.uploadFile(patientDTO.getAvatarUpload()) : null;
-
-            // CHUYỂN DTO THÀNH OBJECT
-            User patient = patientDTO.toObject(UserRole.PATIENT, hashedPassword, uploadedAvatarUrl);
-
-            // TIẾN HÀNH LƯU USER VÀO TRONG DATABASE
-            User savedUser = this.userRepository.addUser(patient);
-            patientDTO.setAvatar(savedUser.getAvatar());
-            return patientDTO;
-
-        } catch (FileUploadException e) {
-            throw new FileUploadException("Không thể tải ảnh lên!");
+public UserDTO addPatientUser(UserDTO patientDTO) throws FileUploadException {
+    try {
+        // KIỂM TRA MẬT KHẨU XÁC NHẬN
+        if (!patientDTO.getPassword().equals(patientDTO.getConfirmPassword())) {
+            throw new RuntimeException("Mật khẩu xác nhận không khớp với mật khẩu của bạn!");
         }
+
+        // MÃ HOÁ MẬT KHẨU
+        String hashedPassword = this.passwordEncoder.encode(patientDTO.getPassword());
+
+        // UPLOAD ẢNH LÊN CLOUDINARY
+        String uploadedAvatarUrl = patientDTO.getAvatarUpload() != null ?
+                fileUploadUtils.uploadFile(patientDTO.getAvatarUpload()) : null;
+
+        // CHUYỂN DTO THÀNH OBJECT
+        User patient = patientDTO.toObject(UserRole.PATIENT, hashedPassword, uploadedAvatarUrl);
+
+        // TIẾN HÀNH LƯU USER VÀO TRONG DATABASE
+        User savedUser = this.userRepository.addUser(patient);
+
+        // TẠO VÀ LƯU HEALTH RECORD RỖNG CHO USER MỚI TẠO
+        HealthRecord healthRecord = new HealthRecord();
+        healthRecord.setPatientId(savedUser);
+        healthRecord.setMedicalHistory("");
+        healthRecord.setAllergies("");
+        healthRecord.setChronicConditions("");
+        healthRecord.setCreatedAt(new java.util.Date());
+        healthRecord.setUpdatedAt(new java.util.Date());
+
+        healthRecordRepository.save(healthRecord);
+
+        // CẬP NHẬT URL AVATAR TRẢ VỀ DTO
+        patientDTO.setAvatar(savedUser.getAvatar());
+
+        return patientDTO;
+
+    } catch (FileUploadException e) {
+        throw new FileUploadException("Không thể tải ảnh lên!");
     }
+}
+
 
     @Override
     public UserDTO getUserByUsername(String username) {
@@ -157,5 +177,9 @@ public class UserServiceImpl implements UserService {
         } catch (FileUploadException e) {
             throw new FileUploadException("Không thể tải ảnh lên!");
         }
+    }
+    @Override
+    public User getUserByUsernameFull(String username) {
+        return userRepository.getUserByUsername(username);
     }
 }

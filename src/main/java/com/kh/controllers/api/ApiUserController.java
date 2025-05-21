@@ -29,6 +29,7 @@ import com.kh.utils.ValidationUtils;
 @RestController
 @RequestMapping("/api")
 public class ApiUserController {
+
     @Autowired
     private UserService userService;
 
@@ -52,8 +53,9 @@ public class ApiUserController {
 
         // VALIDATE DỮ LIỆU
         ResponseEntity<?> errorResponse = validationUtils.getValidationErrorResponse(userDTO);
-        if (errorResponse != null)
+        if (errorResponse != null) {
             return errorResponse;
+        }
 
         // TIỀN HÀNH XÁC THỰC NGƯỜI DÙNG VÀ TẠO TOKEN
         try {
@@ -61,9 +63,7 @@ public class ApiUserController {
             String token = securityUtils.generateToken(userDTO.getUsername());
             // Trả về JWT token cho người dùng
             return ResponseEntity.ok(Collections.singletonMap("token", token));
-        }
-
-        // XỬ LÝ CÁC NGOẠI LỆ
+        } // XỬ LÝ CÁC NGOẠI LỆ
         catch (BadCredentialsException e) {
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
@@ -79,15 +79,85 @@ public class ApiUserController {
      * Endpoint: {@code GET /api/patient-register/}
      *
      * <p>
-     * Dùng để đăng ký người dùng loại bệnh nhân. Các trường cần đăng ký được định
-     * nghĩa tại {@link com.kh.dtos.UserDTO}
+     * Dùng để đăng ký người dùng loại bệnh nhân. Các trường cần đăng ký được
+     * định nghĩa tại {@link com.kh.dtos.UserDTO}
      * </p>
      *
      * @param patientDataMap Phần form-data của bệnh nhân, lưu trữ các thông tin
-     *                       cá nhân
-     * @param avatarUpload   Ảnh avatar của bệnh nhân upload
+     * cá nhân
+     * @param avatarUpload Ảnh avatar của bệnh nhân upload
      * @return Reponse JSON đối tượng user mới tạo
      */
+    @PostMapping(value = "/register", consumes = "multipart/form-data")
+    public ResponseEntity<?> registerUser(
+            @RequestParam Map<String, String> dataMap,
+            @RequestParam(value = "avatar", required = false) MultipartFile avatarUpload) {
+        String userType = dataMap.get("userType");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+        try {
+            if ("doctor".equalsIgnoreCase(userType)) {
+                // Tạo DTO cho bác sĩ
+                UserDTO doctorDTO = new UserDTO();
+                doctorDTO.setUsername(dataMap.get("username"));
+                doctorDTO.setPassword(dataMap.get("password"));
+                doctorDTO.setConfirmPassword(dataMap.get("confirmPassword"));
+                doctorDTO.setEmail(dataMap.get("email"));
+                doctorDTO.setPhone(dataMap.get("phone"));
+                doctorDTO.setFirstName(dataMap.get("firstName"));
+                doctorDTO.setLastName(dataMap.get("lastName"));
+                doctorDTO.setGender(dataMap.get("gender"));
+                doctorDTO.setAddress(dataMap.getOrDefault("address", null));
+                doctorDTO.setAvatarUpload(avatarUpload);
+                doctorDTO.setBirthDate(dateFormat.parse(dataMap.get("birthDate")));
+
+                DoctorLicenseDTO doctorLicenseDTO = new DoctorLicenseDTO();
+                doctorLicenseDTO.setLicenseNumber(dataMap.get("licenseNumber"));
+                doctorLicenseDTO.setSpecialtyId(Long.parseLong(dataMap.get("specialtyId")));
+                doctorLicenseDTO.setIssued(dateFormat.parse(dataMap.get("issuedDate")));
+                doctorLicenseDTO.setExpiry(dateFormat.parse(dataMap.get("expiryDate")));
+
+                // Kiểm tra validate
+                ResponseEntity<?> errorResponse = validationUtils.getValidationErrorResponse(doctorDTO);
+                if (errorResponse != null) {
+                    return errorResponse;
+                }
+
+                DoctorProfileDTO response = userService.addDoctorUser(doctorDTO, doctorLicenseDTO);
+                return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
+            } else if ("patient".equalsIgnoreCase(userType)) {
+                // Tạo DTO cho bệnh nhân
+                UserDTO patientDTO = new UserDTO();
+                patientDTO.setUsername(dataMap.get("username"));
+                patientDTO.setPassword(dataMap.get("password"));
+                patientDTO.setConfirmPassword(dataMap.get("confirmPassword"));
+                patientDTO.setEmail(dataMap.get("email"));
+                patientDTO.setPhone(dataMap.get("phone"));
+                patientDTO.setFirstName(dataMap.get("firstName"));
+                patientDTO.setLastName(dataMap.get("lastName"));
+                patientDTO.setGender(dataMap.get("gender"));
+                patientDTO.setAddress(dataMap.getOrDefault("address", null));
+                patientDTO.setAvatarUpload(avatarUpload);
+                patientDTO.setBirthDate(dateFormat.parse(dataMap.get("birthDate")));
+
+                ResponseEntity<?> errorResponse = validationUtils.getValidationErrorResponse(patientDTO);
+                if (errorResponse != null) {
+                    return errorResponse;
+                }
+
+                UserDTO response = userService.addPatientUser(patientDTO);
+                return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
+            } else {
+                return ResponseEntity.badRequest().body(Collections.singletonMap("error", "Loại người dùng không hợp lệ"));
+            }
+        } catch (ParseException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Collections.singletonMap("birthDate", "Định dạng ngày không hợp lệ!"));
+        }
+    }
+
     @PostMapping(value = "/patient-register", consumes = "multipart/form-data")
     public ResponseEntity<?> patientRegister(
             @RequestParam Map<String, String> patientDataMap,
@@ -112,8 +182,9 @@ public class ApiUserController {
 
             // SỬ DỤNG VALIDATOR ĐỂ KIỂM TRA DTO
             ResponseEntity<?> errorResponse = validationUtils.getValidationErrorResponse(patientDTO);
-            if (errorResponse != null)
+            if (errorResponse != null) {
                 return errorResponse;
+            }
 
             // TIẾN HÀNH TẠO ĐỐI TƯỢNG
             UserDTO dto_response = userService.addPatientUser(patientDTO);
@@ -157,8 +228,9 @@ public class ApiUserController {
 
             // SỬ DỤNG VALIDATOR ĐỂ KIỂM TRA DTO
             ResponseEntity<?> errorResponse = validationUtils.getValidationErrorResponse(doctorDTO);
-            if (errorResponse != null)
+            if (errorResponse != null) {
                 return errorResponse;
+            }
 
             // TIẾN HÀNH TẠO ĐỐI TƯỢNG
             DoctorProfileDTO dto_response = userService.addDoctorUser(doctorDTO, doctorLicenseDTO);
