@@ -1,9 +1,6 @@
 package com.kh.services;
 
 import com.kh.dtos.AppointmentDTO;
-import com.kh.dtos.MedicalRecordDTO;
-
-import com.kh.dtos.AppointmentDetailsDTO;
 
 import java.nio.file.AccessDeniedException;
 import java.util.List;

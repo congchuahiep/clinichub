@@ -4,6 +4,7 @@ import com.kh.dtos.DoctorLicenseDTO;
 import com.kh.dtos.DoctorProfileDTO;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.kh.dtos.PaginatedResponseDTO;
@@ -53,9 +54,12 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private FileUploadUtils fileUploadUtils;
-    
+
     @Autowired
     private HealthRecordRepository healthRecordRepository;
+
+    @Autowired
+    private HospitalRepository hospitalRepository1;
 
     @Override
     public void authenticate(String username, String password) {
@@ -98,46 +102,46 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-public UserDTO addPatientUser(UserDTO patientDTO) throws FileUploadException {
-    try {
-        // KIỂM TRA MẬT KHẨU XÁC NHẬN
-        if (!patientDTO.getPassword().equals(patientDTO.getConfirmPassword())) {
-            throw new RuntimeException("Mật khẩu xác nhận không khớp với mật khẩu của bạn!");
+    public UserDTO addPatientUser(UserDTO patientDTO) throws FileUploadException {
+        try {
+            // KIỂM TRA MẬT KHẨU XÁC NHẬN
+            if (!patientDTO.getPassword().equals(patientDTO.getConfirmPassword())) {
+                throw new RuntimeException("Mật khẩu xác nhận không khớp với mật khẩu của bạn!");
+            }
+
+            // MÃ HOÁ MẬT KHẨU
+            String hashedPassword = this.passwordEncoder.encode(patientDTO.getPassword());
+
+            // UPLOAD ẢNH LÊN CLOUDINARY
+            String uploadedAvatarUrl = patientDTO.getAvatarUpload() != null ?
+                    fileUploadUtils.uploadFile(patientDTO.getAvatarUpload()) : null;
+
+            // CHUYỂN DTO THÀNH OBJECT
+            User patient = patientDTO.toObject(UserRole.PATIENT, hashedPassword, uploadedAvatarUrl);
+
+            // TIẾN HÀNH LƯU USER VÀO TRONG DATABASE
+            User savedUser = this.userRepository.save(patient);
+
+            // TẠO VÀ LƯU HEALTH RECORD RỖNG CHO USER MỚI TẠO
+            HealthRecord healthRecord = new HealthRecord();
+            healthRecord.setPatient(savedUser);
+            healthRecord.setMedicalHistory("");
+            healthRecord.setAllergies("");
+            healthRecord.setChronicConditions("");
+            healthRecord.setCreatedAt(new java.util.Date());
+            healthRecord.setUpdatedAt(new java.util.Date());
+
+            healthRecordRepository.save(healthRecord);
+
+            // CẬP NHẬT URL AVATAR TRẢ VỀ DTO
+            patientDTO.setAvatar(savedUser.getAvatar());
+
+            return patientDTO;
+
+        } catch (FileUploadException e) {
+            throw new FileUploadException("Không thể tải ảnh lên!");
         }
-
-        // MÃ HOÁ MẬT KHẨU
-        String hashedPassword = this.passwordEncoder.encode(patientDTO.getPassword());
-
-        // UPLOAD ẢNH LÊN CLOUDINARY
-        String uploadedAvatarUrl = patientDTO.getAvatarUpload() != null ?
-                fileUploadUtils.uploadFile(patientDTO.getAvatarUpload()) : null;
-
-        // CHUYỂN DTO THÀNH OBJECT
-        User patient = patientDTO.toObject(UserRole.PATIENT, hashedPassword, uploadedAvatarUrl);
-
-        // TIẾN HÀNH LƯU USER VÀO TRONG DATABASE
-        User savedUser = this.userRepository.save(patient);
-
-        // TẠO VÀ LƯU HEALTH RECORD RỖNG CHO USER MỚI TẠO
-        HealthRecord healthRecord = new HealthRecord();
-        healthRecord.setPatient(savedUser);
-        healthRecord.setMedicalHistory("");
-        healthRecord.setAllergies("");
-        healthRecord.setChronicConditions("");
-        healthRecord.setCreatedAt(new java.util.Date());
-        healthRecord.setUpdatedAt(new java.util.Date());
-
-        healthRecordRepository.save(healthRecord);
-
-        // CẬP NHẬT URL AVATAR TRẢ VỀ DTO
-        patientDTO.setAvatar(savedUser.getAvatar());
-
-        return patientDTO;
-
-    } catch (FileUploadException e) {
-        throw new FileUploadException("Không thể tải ảnh lên!");
     }
-}
 
 
     @Override
@@ -176,19 +180,29 @@ public UserDTO addPatientUser(UserDTO patientDTO) throws FileUploadException {
             // Lưu thông tin bác sĩ
             User doctor = doctorDTO.toObject(UserRole.DOCTOR, hashedPassword, uploadedAvatarUrl);
             doctor.setIsActive(false); // Tài khoản bác sĩ mới tạo mặc định chưa được kích hoạt
+
+            // Lưu thông tin giấy phép hành nghề của bác sĩ
+            Set<DoctorLicense> doctorLicenses = new HashSet<>();
+            doctorLicenses.add(doctorLicenseDTO.toObject(doctor, specialty));
+            doctor.setDoctorLicenseSet(doctorLicenses);
+            // Tự động lưu doctor license vào database được vì nó là quan hệ many-to-one đúng hơn là do user "sở hữu"
+            // doctor license. Tức khi lưu một user đang ở trạng thái transient, mà user đó có chứa một doctor license
+            // cũng đang ở trạng thái transient, thì khi hibernate lưu user cũng đồng thời lưu doctor license luôn
             User savedUser = this.userRepository.save(doctor);
 
-            // Lưu thông tin giấy phép
-            DoctorLicense license = doctorLicenseDTO.toObject(savedUser, specialty);
-            doctorLisenceRepository.save(license);
-
-            // Lưu bác sĩ vào bệnh viện
-            hospitalRepository.registerDoctorToHospital(hospital, doctor);
+            // Lưu bệnh viện mà bác sĩ khám
+            Set<Hospital> hospitals = new HashSet<>();
+            hospitals.add(hospital);
+            doctor.setHospitalSet(hospitals);
+            // Khác với doctor license, doctor không "sở hữu" hospital. Thứ nhất, là do giữa doctor và hospital là mối
+            // quan hệ many-to-many. Thứ hai, quan hệ many-to-many ta có thể đặt chiều sở hữu được, nên đúng logic nhất
+            // ở đây sẽ phải là hospital sở hữu các doctor
+            hospitalRepository.registerDoctorToHospital(hospital, doctor); // Xử lý việc lưu ở chiều sở hữu
 
             // Cập nhật thông tin vào DTO để trả về
             doctorDTO.setAvatar(savedUser.getAvatar());
 
-            return new DoctorProfileDTO(doctorDTO, doctorLicenseDTO, hospital.getName());
+            return new DoctorProfileDTO(doctor);
 
         } catch (FileUploadException e) {
             throw new FileUploadException("Không thể tải ảnh lên!");
@@ -196,7 +210,27 @@ public UserDTO addPatientUser(UserDTO patientDTO) throws FileUploadException {
     }
 
     @Override
-    public PaginatedResponseDTO<DoctorProfileDTO> getDoctors(int page, int pageSize) {
-        return null;
+    @Transactional
+    public PaginatedResponseDTO<DoctorProfileDTO> getDoctors(
+            int page,
+            int pageSize,
+            Long hospitalId,
+            Long specialtyId,
+            String doctorName
+    ) {
+
+        Long totalDoctors = this.userRepository.countDoctor(hospitalId, specialtyId, doctorName);
+
+        List<User> doctors = this.userRepository.doctorList(page, pageSize, hospitalId, specialtyId, doctorName);
+
+        List<DoctorProfileDTO> doctorProfileDTOS = doctors
+                .stream()
+                .map(DoctorProfileDTO::new)
+                .toList();
+
+        return new PaginatedResponseDTO<>(
+                doctorProfileDTOS, page, pageSize, totalDoctors,
+                (int) Math.ceil(totalDoctors / (double) pageSize)
+        );
     }
 }

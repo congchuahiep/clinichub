@@ -1,7 +1,6 @@
 package com.kh.services.impl;
 
 import com.kh.dtos.AppointmentDTO;
-import com.kh.dtos.AppointmentDetailsDTO;
 import com.kh.dtos.MedicalRecordDTO;
 import com.kh.enums.AppointmentSlot;
 import com.kh.enums.UserRole;
@@ -16,14 +15,11 @@ import com.kh.services.AppointmentService;
 import java.nio.file.AccessDeniedException;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 public class AppointmentServiceImpl implements AppointmentService {

@@ -38,6 +38,8 @@ public class UserDTO {
 
     // ATTRIBUTE
 
+    private Long id;
+
     @NotBlank
     private String username;
 
@@ -89,6 +91,7 @@ public class UserDTO {
     }
 
     public UserDTO(User user) {
+        this.id = user.getId();
         this.username = user.getUsername();
         this.email = user.getEmail();
         this.phone = user.getPhone();
@@ -220,4 +223,11 @@ public class UserDTO {
         this.confirmPassword = confirmPassword;
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 }

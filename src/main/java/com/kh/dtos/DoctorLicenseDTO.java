@@ -40,7 +40,18 @@ public class DoctorLicenseDTO {
     @NotBlank
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     private Date expiry;
-    
+
+    public DoctorLicenseDTO() {}
+
+    public DoctorLicenseDTO(DoctorLicense doctorLicense) {
+        this.doctorId = doctorLicense.getDoctorId().getId();
+        this.licenseNumber = doctorLicense.getLicenseNumber();
+        this.specialtyId = doctorLicense.getSpecialtyId().getId();
+        this.issued = doctorLicense.getIssuedDate();
+        this.expiry = doctorLicense.getExpiryDate();
+        this.specialtyName = doctorLicense.getSpecialtyId().getName();
+    }
+
     public DoctorLicense toObject(User doctor, Specialty specialty) {
         DoctorLicense doctorLicense = new DoctorLicense();
         doctorLicense.setLicenseNumber(this.licenseNumber);

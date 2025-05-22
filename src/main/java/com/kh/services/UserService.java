@@ -13,5 +13,5 @@ public interface UserService extends UserDetailsService {
     
     DoctorProfileDTO addDoctorUser(UserDTO doctorDTO, DoctorLicenseDTO doctorLicense, Long hospitalId) throws FileUploadException;
 
-    PaginatedResponseDTO<DoctorProfileDTO> getDoctors(int page, int pageSize);
+    PaginatedResponseDTO<DoctorProfileDTO> getDoctors(int page, int pageSize, Long hospitalId, Long specialtyId, String doctorName);
 }

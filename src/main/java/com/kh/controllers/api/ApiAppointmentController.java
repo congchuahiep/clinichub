@@ -1,11 +1,8 @@
 package com.kh.controllers.api;
 
 import com.kh.dtos.AppointmentDTO;
-import com.kh.dtos.AppointmentDetailsDTO;
 import com.kh.dtos.MedicalRecordDTO;
-import com.kh.dtos.PaginatedResponseDTO;
 import com.kh.enums.UserRole;
-import com.kh.pojo.User;
 import com.kh.services.AppointmentService;
 import com.kh.services.MedicalRecordService;
 import com.kh.utils.SecurityUtils;
