@@ -23,7 +23,6 @@ public class MedicalRecordRepositoryImpl extends AbstractRepository implements M
         return medicalRecord;
     }
 
-    @Override
     public List<MedicalRecord> findByPatientId(Long patientId, int page, int pageSize) {
         Session session = getCurrentSession();
         String hql = "FROM MedicalRecord WHERE healthRecordId.patient.id = :id ORDER BY createdAt DESC";

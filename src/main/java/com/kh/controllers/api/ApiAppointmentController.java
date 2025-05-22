@@ -1,6 +1,7 @@
 package com.kh.controllers.api;
 
 import com.kh.dtos.AppointmentDTO;
+import com.kh.dtos.AppointmentDetailsDTO;
 import com.kh.dtos.MedicalRecordDTO;
 import com.kh.dtos.PaginatedResponseDTO;
 import com.kh.enums.UserRole;
@@ -15,10 +16,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.AccessDeniedException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api")
@@ -32,10 +35,10 @@ public class ApiAppointmentController {
 
     @Autowired
     private ValidationUtils validationUtils;
-
+    
     @Autowired
     private SecurityUtils securityUtils;
-
+    
     @PostMapping("/secure/appointments")
     public ResponseEntity<?> addAppointment(
             @RequestParam("doctorId") Long doctorId,
@@ -119,4 +122,23 @@ public class ApiAppointmentController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(medicalRecordDTO);
     }
+
+    @GetMapping("/secure/appointments/{appointmentId}")
+    public ResponseEntity<?> getAppointmentDetails(
+            @PathVariable("appointmentId") Long appointmentId,
+            Authentication auth
+    ) {
+        try {
+            // Lấy chi tiết lịch khám và bản ghi khám (nếu có)
+            AppointmentDTO detailsDTO = appointmentService.getAppointmentDetails(appointmentId, auth.getName());
+            return ResponseEntity.ok(detailsDTO);
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Collections.singletonMap("error", e.getMessage()));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("error", "Lỗi hệ thống: " + e.getMessage()));
+        }
+    }
+
 }
