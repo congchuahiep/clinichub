@@ -11,6 +11,7 @@ import Login from "./components/Login";
 import { MyDispatcherContext, MyUserContext } from "./configs/MyContexts";
 import { useReducer } from "react";
 import MyUserReducer from "./reducers/MyUserReducer.js";
+import DoctorSearch from "./components/DoctorSearch.js";
 
 function App() {
 
@@ -29,6 +30,7 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/login" element={<Login />} />
               <Route path="/patient-profile/:patientId" element={<PatientProfile />} />
+              <Route path="/doctor-search" element={<DoctorSearch />} /> 
 
 
             </Routes>
