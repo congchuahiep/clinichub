@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Alert, Button, Form, Tab, Tabs } from "react-bootstrap";
+import { Alert, Button, Col, Container, Form, Row, Tab, Tabs } from "react-bootstrap";
 import Apis, { endpoints } from "../configs/APIs";
 import MySpinner from "./layouts/MySpinner";
 import { useNavigate } from "react-router-dom";
@@ -12,7 +12,7 @@ const RegisterForm = ({ userType }) => {
     { title: "Email", field: "email", type: "email", required: true },
     { title: "Tên đăng nhập", field: "username", type: "text", required: true },
     { title: "Mật khẩu", field: "password", type: "password", required: true },
-    { title: "Xác nhận mật khẩu", field: "confirm", type: "password", required: true },
+    { title: "Xác nhận mật khẩu", field: "confirmPassword", type: "password", required: true },
     { title: "Ngày sinh", field: "birthDate", type: "date", required: true },
   ];
 
@@ -27,8 +27,10 @@ const RegisterForm = ({ userType }) => {
 
   const [user, setUser] = useState({});
   const avatar = useRef();
-  const [msg, setMsg] = useState();
+
+  const [message, setMessage] = useState();
   const [loading, setLoading] = useState(false);
+
   const nav = useNavigate();
 
   const setState = (value, field) => {
@@ -45,32 +47,32 @@ const RegisterForm = ({ userType }) => {
     return `${yyyy}-${mm}-${dd}`;
   };
 
-  const register = async (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
 
     // Kiểm tra mật khẩu xác nhận
     if (user.password !== user.confirm) {
-      setMsg("Mật khẩu KHÔNG khớp");
+      setMessage("Mật khẩu KHÔNG khớp");
       return;
     }
 
     // Kiểm tra các trường bắt buộc
     for (const field of commonInfo) {
       if (field.required && !user[field.field]) {
-        setMsg(`Vui lòng nhập trường "${field.title}"`);
+        setMessage(`Vui lòng nhập trường "${field.title}"`);
         return;
       }
     }
     if (userType === "doctor") {
       for (const field of doctorExtraInfo) {
         if (field.required && !user[field.field]) {
-          setMsg(`Vui lòng nhập trường "${field.title}"`);
+          setMessage(`Vui lòng nhập trường "${field.title}"`);
           return;
         }
       }
     }
     if (!user.gender) {
-      setMsg("Vui lòng chọn giới tính");
+      setMessage("Vui lòng chọn giới tính");
       return;
     }
 
@@ -100,9 +102,16 @@ const RegisterForm = ({ userType }) => {
         headers: { "Content-Type": "multipart/form-data" },
       });
       nav("/login");
+
     } catch (ex) {
       console.error(ex);
-      setMsg("Có lỗi xảy ra khi đăng ký.");
+
+      const errorMessage =
+        ex.response && ex.response.data
+          ? JSON.stringify(ex.response.data)
+          : "";
+
+      setMessage("Có lỗi xảy ra khi đăng ký." + (errorMessage ? " " + errorMessage : ""));
     } finally {
       setLoading(false);
     }
@@ -110,13 +119,13 @@ const RegisterForm = ({ userType }) => {
 
   return (
     <>
-      <h3 className="text-center text-success mt-1">
-        ĐĂNG KÝ {userType === "patient" ? "Bệnh nhân" : "Bác sĩ"}
+      <h3 className="text-center mt-1">
+        Đăng ký {userType === "patient" ? "bệnh nhân" : "bác sĩ"}
       </h3>
 
-      {msg && <Alert variant="danger">{msg}</Alert>}
+      {message && <Alert variant="danger">{message}</Alert>}
 
-      <Form onSubmit={register}>
+      <Form onSubmit={handleRegister}>
         {info.map((i) => (
           <Form.Control
             key={i.field}
@@ -164,14 +173,23 @@ const RegisterForm = ({ userType }) => {
 
 function RegisterTabs() {
   return (
-    <Tabs defaultActiveKey="patient-register" id="fill-tab-example" className="mb-3" fill>
-      <Tab eventKey="patient-register" title="Đăng ký bệnh nhân">
-        <RegisterForm userType="patient" />
-      </Tab>
-      <Tab eventKey="doctor-register" title="Đăng ký bác sĩ">
-        <RegisterForm userType="doctor" />
-      </Tab>
-    </Tabs>
+    <Container >
+
+      <Row className="justify-content-center">
+        <Col md="auto" xl="6" className="rounded p-0 border">
+          <Tabs defaultActiveKey="patient-register" id="fill-tab-example" className="mb-3" fill>
+            <Tab eventKey="patient-register" title="Đăng ký bệnh nhân" className="p-3" >
+              <RegisterForm userType="patient" />
+            </Tab>
+            <Tab eventKey="doctor-register" title="Đăng ký bác sĩ" className="p-3">
+              <RegisterForm userType="doctor" />
+            </Tab>
+          </Tabs>
+        </Col>
+
+      </Row>
+
+    </Container>
   );
 }
 

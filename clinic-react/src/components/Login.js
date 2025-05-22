@@ -1,5 +1,5 @@
 import { useContext, useRef, useState } from "react";
-import { Alert, Button, Form } from "react-bootstrap";
+import { Alert, Button, Col, Form, Row } from "react-bootstrap";
 import Apis, { authApis, endpoints } from "../configs/APIs";
 import MySpinner from "./layouts/MySpinner";
 import { useNavigate } from "react-router-dom";
@@ -7,63 +7,83 @@ import cookie from 'react-cookies'
 import { MyDispatcherContext } from "../configs/MyContexts";
 
 const Login = () => {
-    const info = [{
-        title: "Tên đăng nhập",
-        field: "username",
-        type: "text"
-    }, {
-        title: "Mật khẩu",
-        field: "password",
-        type: "password"
-    }];
-    const [user, setUser] = useState({});
-    const [msg, setMsg] = useState();
-    const [loading, setLoading] = useState(false);
-    const nav = useNavigate();
-    const dispatch = useContext(MyDispatcherContext);
+  const info = [{
+    title: "Tên đăng nhập",
+    field: "username",
+    type: "text"
+  }, {
+    title: "Mật khẩu",
+    field: "password",
+    type: "password"
+  }];
 
-    const setState = (value, field) => {
-        setUser({...user, [field]: value});
+  const [user, setUser] = useState({});
+  const [msg, setMsg] = useState();
+  const [loading, setLoading] = useState(false);
+  const nav = useNavigate();
+  const dispatch = useContext(MyDispatcherContext);
+
+  const setState = (value, field) => {
+    setUser({ ...user, [field]: value });
+  }
+
+  const login = async (e) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      let res = await Apis.post(endpoints['login'], {
+        ...user
+      });
+
+      cookie.save('token', res.data.token);
+
+      let u = await authApis().get(endpoints['current-user']);
+      console.info(u.data);
+
+      dispatch({
+        "type": "login",
+        "payload": u.data
+      });
+      
+      nav("/");
+    } catch (ex) {
+      console.error(ex);
+    } finally {
+      setLoading(false);
     }
-    
-    const login = async (e) => {
-        e.preventDefault();
-        try {
-            setLoading(true);
-            let res = await Apis.post(endpoints['login'], {
-                ...user
-            });
-           
-            cookie.save('token', res.data.token);
+  }
 
-            let u = await authApis().get(endpoints['current-user']);
-            console.info(u.data);
+  return (
+    <>
+      <Row className="justify-content-center">
+        <Col md="auto" xl="6" className="rounded p-3 border">
+          <h1 className="text-center mt-5">Đăng nhập</h1>
 
-            dispatch({
-                "type": "login",
-                "payload": u.data
-            });
-            nav("/");
-        } catch (ex) {
-            console.error(ex);
-        } finally {
-            setLoading(false);
-        }
-    }
+          {msg && <Alert variant="danger">{msg}</Alert>}
 
-    return (
-        <>
-            <h1 className="text-center text-success mt-1">ĐĂNG KÝ</h1>
+          <Form onSubmit={login}>
 
-            {msg && <Alert variant="danger">{msg}</Alert>}
+            {info.map(i =>
+              <Form.Control
+                value={user[i.field]}
+                onChange={e => setState(e.target.value, i.field)}
+                className="mt-3 mb-1"
+                key={i.field}
+                type={i.type}
+                placeholder={i.title}
+                required
+              />)
+            }
 
-            <Form onSubmit={login}>
-                {info.map(i => <Form.Control value={user[i.field]} onChange={e => setState(e.target.value, i.field)} className="mt-3 mb-1" key={i.field} type={i.type} placeholder={i.title} required />)}
-
-                {loading === true?<MySpinner />:<Button type="submit" variant="success" className="mt-3 mb-1">Đăng nhập</Button>}
-            </Form>  
-        </>
-    )
+            {loading === true
+              ? <MySpinner />
+              : <Button type="submit" variant="success" className="mt-3 mb-1">Đăng nhập</Button>
+            }
+          </Form>
+        </Col>
+      </Row >
+    </>
+  )
 }
 
 export default Login;
