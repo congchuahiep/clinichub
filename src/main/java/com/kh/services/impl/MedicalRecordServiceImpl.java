@@ -1,6 +1,7 @@
 package com.kh.services.impl;
 
 import com.kh.dtos.MedicalRecordDTO;
+import com.kh.dtos.PaginatedResponseDTO;
 import com.kh.pojo.*;
 import com.kh.repositories.*;
 import com.kh.services.MedicalRecordService;
@@ -9,9 +10,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.List;
 
 @Service
 public class MedicalRecordServiceImpl implements MedicalRecordService {
+
+    private static final int PAGE_SIZE = 10;
+
+    @Autowired
+    private MedicalRecordRepository medicalRecordRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -24,9 +31,6 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
 
     @Autowired
     private DiseaseRepository diseaseRepository;
-
-    @Autowired
-    private MedicalRecordRepository medicalRecordRepository;
 
     @Override
     @Transactional
@@ -71,5 +75,33 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
         appointmentRepository.save(appointment);
 
         return new MedicalRecordDTO(medicalRecord);
+    }
+
+    @Override
+    @Transactional
+    public PaginatedResponseDTO<MedicalRecordDTO> getMedicalRecords(Long patientId, int page, int pageSize) {
+        Long totalElement = medicalRecordRepository.countByPatientId(patientId);
+
+        List<MedicalRecord> records = medicalRecordRepository.findByPatientId(patientId, page, pageSize);
+
+        List<MedicalRecordDTO> dtos = records.stream()
+                .map(MedicalRecordDTO::new)
+                .toList();
+
+        return new PaginatedResponseDTO<>(
+                dtos, page, pageSize, totalElement,
+                (int) Math.ceil(totalElement / (double) pageSize)
+        );
+    }
+
+    @Override
+    @Transactional
+    public PaginatedResponseDTO<MedicalRecordDTO> doctorGetMedicalRecords(Long doctorId, Long patientId, int page, int pageSize) {
+        // Kiểm tra bác sĩ có lịch khám với bệnh nhân này hay không
+        if (!this.appointmentRepository.existsAppointmentBetweenDoctorAndPatient(doctorId, patientId)) {
+            throw new RuntimeException("Bác sĩ chỉ được xem hồ sơ của bệnh nhân đã có lịch hẹn");
+        }
+
+        return this.getMedicalRecords(patientId, page, pageSize);
     }
 }

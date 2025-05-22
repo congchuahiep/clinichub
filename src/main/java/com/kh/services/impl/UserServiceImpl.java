@@ -115,7 +115,7 @@ public UserDTO addPatientUser(UserDTO patientDTO) throws FileUploadException {
         User patient = patientDTO.toObject(UserRole.PATIENT, hashedPassword, uploadedAvatarUrl);
 
         // TIẾN HÀNH LƯU USER VÀO TRONG DATABASE
-        User savedUser = this.userRepository.addUser(patient);
+        User savedUser = this.userRepository.save(patient);
 
         // TẠO VÀ LƯU HEALTH RECORD RỖNG CHO USER MỚI TẠO
         HealthRecord healthRecord = new HealthRecord();
@@ -175,11 +175,11 @@ public UserDTO addPatientUser(UserDTO patientDTO) throws FileUploadException {
             // Lưu thông tin bác sĩ
             User doctor = doctorDTO.toObject(UserRole.DOCTOR, hashedPassword, uploadedAvatarUrl);
             doctor.setIsActive(false); // Tài khoản bác sĩ mới tạo mặc định chưa được kích hoạt
-            User savedUser = this.userRepository.addUser(doctor);
+            User savedUser = this.userRepository.save(doctor);
 
             // Lưu thông tin giấy phép
             DoctorLicense license = doctorLicenseDTO.toObject(savedUser, specialty);
-            doctorLisenceRepository.addDoctorLisence(license);
+            doctorLisenceRepository.save(license);
 
             // Lưu bác sĩ vào bệnh viện
             hospitalRepository.registerDoctorToHospital(hospital, doctor);

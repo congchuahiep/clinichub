@@ -40,8 +40,33 @@ public class UserRepositoryImpl extends AbstractRepository implements UserReposi
     @PersistenceContext
     private EntityManager em;
 
+
+    /**
+     * Thêm đối tượng User dùng vào cơ sở dữ liệu
+     *
+     * @param user Đối tượng user cần thêm
+     * @return Đối tượng user mới được tạo và lưu dưới cơ sở dữ liệu
+     */
     @Override
-    public List<User> getUserList() {
+    public User save(User user) throws UsernameAlreadyExistsException, EmailAlreadyExistsException, IllegalStateException {
+        try {
+            Session session = getCurrentSession();
+            session.persist(user);
+        } catch (ConstraintViolationException ex) {
+            String message = ex.getMessage();
+
+            if (message.contains("username")) {
+                throw new UsernameAlreadyExistsException("Username này đã có người khác sử dụng!");
+            } else if (message.contains("email")) {
+                throw new EmailAlreadyExistsException("Email này đã có người khác sử dụng!");
+            }
+        }
+
+        return user;
+    }
+
+    @Override
+    public List<User> list() {
         Session session = getCurrentSession();
 
         Query<User> q = session.createQuery("FROM User", User.class);
@@ -123,29 +148,5 @@ public class UserRepositoryImpl extends AbstractRepository implements UserReposi
         } catch (NoResultException e) {
             return Optional.empty();
         }
-    }
-
-    /**
-     * Thêm đối tượng User dùng vào cơ sở dữ liệu
-     *
-     * @param user Đối tượng user cần thêm
-     * @return Đối tượng user mới được tạo và lưu dưới cơ sở dữ liệu
-     */
-    @Override
-    public User addUser(User user) throws UsernameAlreadyExistsException, EmailAlreadyExistsException, IllegalStateException {
-        try {
-            Session session = getCurrentSession();
-            session.persist(user);
-        } catch (ConstraintViolationException ex) {
-            String message = ex.getMessage();
-
-            if (message.contains("username")) {
-                throw new UsernameAlreadyExistsException("Username này đã có người khác sử dụng!");
-            } else if (message.contains("email")) {
-                throw new EmailAlreadyExistsException("Email này đã có người khác sử dụng!");
-            }
-        }
-
-        return user;
     }
 }

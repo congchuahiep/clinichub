@@ -11,7 +11,7 @@ import com.kh.pojo.DoctorLicense;
  * @author Admin
  */
 public interface DoctorLisenceRepository {
-    DoctorLicense addDoctorLisence(DoctorLicense doctorLisence);
+    DoctorLicense save(DoctorLicense doctorLisence);
     
-    
+    DoctorLicense update(DoctorLicense doctorLisence);
 }

@@ -10,5 +10,5 @@ public interface DiseaseRepository {
 
     Optional<Disease> findById(Long id);
 
-    List<Disease> getDiseaseList(Map<String, String> params);
+    List<Disease> list(Map<String, String> params);
 }

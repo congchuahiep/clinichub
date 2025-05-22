@@ -2,6 +2,7 @@ package com.kh.controllers.api;
 
 import com.kh.dtos.AppointmentDTO;
 import com.kh.dtos.MedicalRecordDTO;
+import com.kh.dtos.PaginatedResponseDTO;
 import com.kh.enums.UserRole;
 import com.kh.pojo.User;
 import com.kh.services.AppointmentService;
@@ -89,7 +90,14 @@ public class ApiAppointmentController {
         }
     }
 
-
+    /**
+     * Endpoint: {@code /api/secure/appointments/{id}/medical-records}
+     *
+     * <p>
+     * Sau khi đã khám xong, bác sĩ tạo ra một bản ghi chẩn đoán bệnh mới
+     * </p>
+     *
+     */
     @PostMapping("/secure/appointments/{id}/medical-records")
     public ResponseEntity<?> addMedicalRecord(
             @PathVariable("id") Long appointmentId,
@@ -99,7 +107,7 @@ public class ApiAppointmentController {
         securityUtils.requireRole(auth, UserRole.DOCTOR);
 
         medicalRecordDTO.setAppointmentId(appointmentId);
-        medicalRecordDTO.setDoctorId(securityUtils.getCurrentUserId(auth)); // ĐANG LỖI CHỐ NÀY
+        medicalRecordDTO.setDoctorId(securityUtils.getCurrentUserId(auth));
 
         // SỬ DỤNG VALIDATOR ĐỂ KIỂM TRA DTO
         ResponseEntity<?> errorResponse = validationUtils.getValidationErrorResponse(medicalRecordDTO);

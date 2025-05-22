@@ -21,13 +21,16 @@ public class DoctorLisenceRepositoryImpl extends AbstractRepository implements D
 
 
     @Override
-    public DoctorLicense addDoctorLisence(DoctorLicense doctorLisence) {
-        try{
-            Session session = this.getCurrentSession();
-            session.persist(doctorLisence);
-            return doctorLisence;
-        } catch(IllegalStateException ex){
-            return null;
-        }
+    public DoctorLicense save(DoctorLicense doctorLisence) {
+        Session session = this.getCurrentSession();
+        session.persist(doctorLisence);
+        return doctorLisence;
+    }
+
+    @Override
+    public DoctorLicense update(DoctorLicense doctorLisence) {
+        Session session = this.getCurrentSession();
+        session.merge(doctorLisence);
+        return doctorLisence;
     }
 }

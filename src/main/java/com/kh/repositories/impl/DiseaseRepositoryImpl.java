@@ -26,20 +26,6 @@ public class DiseaseRepositoryImpl extends AbstractRepository implements Disease
     }
 
     @Override
-    public List<Disease> getDiseaseList(Map<String, String> params) {
-        Session session = getCurrentSession();
-
-        Query<Disease> q = session.createQuery("FROM Disease", Disease.class);
-
-        int page = NumberUtils.toInt(params.get("page"), 1);
-
-        q.setFirstResult((page - 1) * PAGE_SIZE);
-        q.setMaxResults(PAGE_SIZE);
-
-        return q.getResultList();
-    }
-
-    @Override
     public Optional<Disease> findById(Long id) {
         Session session = getCurrentSession();
 
@@ -55,5 +41,19 @@ public class DiseaseRepositoryImpl extends AbstractRepository implements Disease
         } catch (Exception e) {
             return Optional.empty();
         }
+    }
+
+    @Override
+    public List<Disease> list(Map<String, String> params) {
+        Session session = getCurrentSession();
+
+        Query<Disease> q = session.createQuery("FROM Disease", Disease.class);
+
+        int page = NumberUtils.toInt(params.get("page"), 1);
+
+        q.setFirstResult((page - 1) * PAGE_SIZE);
+        q.setMaxResults(PAGE_SIZE);
+
+        return q.getResultList();
     }
 }

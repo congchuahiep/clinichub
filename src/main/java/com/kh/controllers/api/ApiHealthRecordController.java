@@ -1,9 +1,12 @@
 package com.kh.controllers.api;
 
 import com.kh.dtos.HealthRecordDTO;
+import com.kh.dtos.MedicalRecordDTO;
+import com.kh.dtos.PaginatedResponseDTO;
 import com.kh.dtos.PatientProfileDTO;
 import com.kh.enums.UserRole;
 import com.kh.services.HealthRecordService;
+import com.kh.services.MedicalRecordService;
 import com.kh.services.UserService;
 
 import com.kh.utils.SecurityUtils;
@@ -24,6 +27,9 @@ public class ApiHealthRecordController {
 
     @Autowired
     private SecurityUtils securityUtils;
+
+    @Autowired
+    private MedicalRecordService medicalRecordService;
 
     /**
      * Endpoints: {@code GET /api/secure/health-records}
@@ -98,5 +104,23 @@ public class ApiHealthRecordController {
         HealthRecordDTO dto = this.healthRecordService.updateHealthRecord(patientId, auth.getName(), healthRecordDTO);
 
         return ResponseEntity.ok(dto);
+    }
+
+    /**
+     * Bác sĩ xem danh sách các bản ghi chẩn đoán của một hồ sơ sức khoẻ (của 1 bệnh nhân)
+     */
+    @GetMapping("/secure/health-records/{id}/medical-records")
+    public ResponseEntity<?> doctorGetMedicalRecords(
+            @PathVariable("id") Long patientId,
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            Authentication auth
+    ) {
+        securityUtils.requireRole(auth, UserRole.DOCTOR);
+        Long doctorId = securityUtils.getCurrentUserId(auth);
+
+        PaginatedResponseDTO<MedicalRecordDTO> dtos = medicalRecordService.doctorGetMedicalRecords(doctorId, patientId, page, size);
+
+        return ResponseEntity.ok(dtos);
     }
 }

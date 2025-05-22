@@ -3,6 +3,9 @@ package com.kh.dtos;
 import com.kh.pojo.HealthRecord;
 import jakarta.validation.constraints.Size;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 public class HealthRecordDTO {
 
     private Long id;
@@ -23,6 +26,8 @@ public class HealthRecordDTO {
     private String bloodPressure;
 
     private String bloodSugar;
+
+    private Set<MedicalRecordDTO> medicalRecords;
 
     public HealthRecordDTO() {
     }
@@ -100,5 +105,12 @@ public class HealthRecordDTO {
 
     public void setBloodSugar(String bloodSugar) {
         this.bloodSugar = bloodSugar;
+    }
+
+    public Set<MedicalRecordDTO> getMedicalRecords() {
+        return medicalRecords;
+    }
+    public void setMedicalRecords(Set<MedicalRecordDTO> medicalRecords) {
+        this.medicalRecords = medicalRecords;
     }
 }

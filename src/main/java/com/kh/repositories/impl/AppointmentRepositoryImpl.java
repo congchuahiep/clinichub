@@ -26,16 +26,16 @@ public class AppointmentRepositoryImpl extends AbstractRepository implements App
     @Override
     public Appointment save(Appointment appointment) {
         Session session = getCurrentSession();
-
-        if (appointment.getId() == null) {
-            session.persist(appointment);
-        } else {
-            session.merge(appointment);
-        }
-
+        session.persist(appointment);
         return appointment;
     }
 
+    @Override
+    public Appointment update(Appointment appointment) {
+        Session session = getCurrentSession();
+        session.merge(appointment);
+        return appointment;
+    }
 
     @Override
     public boolean isDoctorTimeSlotTaken(User doctor, Date date, AppointmentSlot slot) {

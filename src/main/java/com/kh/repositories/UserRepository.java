@@ -15,7 +15,7 @@ import java.util.Optional;
  *
  */
 public interface UserRepository {
-    List<User> getUserList();
+    List<User> list();
 
     Optional<User> findById(long id);
 
@@ -25,5 +25,5 @@ public interface UserRepository {
 
     Optional<User> findDoctorByUsername(String username);
 
-    User addUser(User user) throws UsernameAlreadyExistsException, EmailAlreadyExistsException, IllegalStateException;
+    User save(User user) throws UsernameAlreadyExistsException, EmailAlreadyExistsException, IllegalStateException;
 }

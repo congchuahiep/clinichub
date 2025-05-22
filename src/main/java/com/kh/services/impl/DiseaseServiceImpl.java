@@ -19,7 +19,7 @@ public class DiseaseServiceImpl implements DiseaseService {
 
     @Override
     public List<DiseaseDTO> getDiseaseList(Map<String, String> params) {
-        List<Disease> diseases = diseaseRepository.getDiseaseList(params);
+        List<Disease> diseases = diseaseRepository.list(params);
 
         return diseases.stream()
                 .map(disease -> new DiseaseDTO(disease.getId(), disease.getName(), disease.getDescription()))

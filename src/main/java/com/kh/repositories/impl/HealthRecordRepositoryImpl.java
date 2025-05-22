@@ -23,6 +23,24 @@ public class HealthRecordRepositoryImpl extends AbstractRepository implements He
     }
 
     @Override
+    public HealthRecord save(HealthRecord healthRecord) {
+        Session session = getCurrentSession();
+
+        // ID của HealthRecord giờ sẽ là ID của User
+        if (healthRecord.getPatient() != null) {
+            healthRecord.setPatient(healthRecord.getPatient());
+        }
+
+        return session.merge(healthRecord);
+    }
+
+    @Override
+    public HealthRecord update(HealthRecord healthRecord) {
+        Session session = getCurrentSession();
+        return session.merge(healthRecord);
+    }
+
+    @Override
     public Optional<HealthRecord> findById(Long id) {
         Session session = getCurrentSession();
 
@@ -34,25 +52,13 @@ public class HealthRecordRepositoryImpl extends AbstractRepository implements He
     }
 
     @Override
-    public List<HealthRecord> findAll() {
+    public List<HealthRecord> list() {
         Session session = getCurrentSession();
 
         String hql = "SELECT h FROM HealthRecord h";
         Query<HealthRecord> query = session.createQuery(hql, HealthRecord.class);
 
         return query.getResultList();
-    }
-
-    @Override
-    public HealthRecord save(HealthRecord healthRecord) {
-        Session session = getCurrentSession();
-
-        // ID của HealthRecord giờ sẽ là ID của User
-        if (healthRecord.getPatient() != null) {
-            healthRecord.setPatient(healthRecord.getPatient());
-        }
-
-        return session.merge(healthRecord);
     }
 
 

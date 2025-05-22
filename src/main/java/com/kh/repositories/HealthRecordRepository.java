@@ -7,11 +7,13 @@ import java.util.Optional;
 
 public interface HealthRecordRepository {
 
+    HealthRecord save(HealthRecord healthRecord);
+
+    HealthRecord update(HealthRecord healthRecord);
+
     Optional<HealthRecord> findById(Long id);
 
-    List<HealthRecord> findAll();
-
-    HealthRecord save(HealthRecord healthRecord);
+    List<HealthRecord> list();
 
     void delete(Long id);
 }
