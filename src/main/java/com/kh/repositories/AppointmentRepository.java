@@ -6,6 +6,7 @@ import com.kh.pojo.User;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 public interface AppointmentRepository {
     Appointment add(Appointment appointment);
@@ -14,4 +15,6 @@ public interface AppointmentRepository {
     
     List<Appointment> findByPatientId(Long patientId);
     List<Appointment> findByDoctorId(Long doctorId);
+
+    Optional<Appointment> findById(Long appointmentId);
 }

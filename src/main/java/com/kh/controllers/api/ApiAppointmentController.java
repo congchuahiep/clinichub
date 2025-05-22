@@ -1,6 +1,7 @@
- package com.kh.controllers.api;
+package com.kh.controllers.api;
 
 import com.kh.dtos.AppointmentDTO;
+import com.kh.dtos.AppointmentDetailsDTO;
 import com.kh.dtos.MedicalRecordDTO;
 import com.kh.enums.UserRole;
 import com.kh.services.AppointmentService;
@@ -10,16 +11,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.AccessDeniedException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.List;
-import org.springframework.web.bind.annotation.GetMapping;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api")
@@ -87,4 +86,23 @@ public class ApiAppointmentController {
                     .body(Collections.singletonMap("error", "Lỗi khi lấy danh sách lịch khám." + e.getMessage()));
         }
     }
+
+    @GetMapping("/secure/appointments/{appointmentId}")
+    public ResponseEntity<?> getAppointmentDetails(
+            @PathVariable("appointmentId") Long appointmentId,
+            Authentication auth
+    ) {
+        try {
+            // Lấy chi tiết lịch khám và bản ghi khám (nếu có)
+            AppointmentDetailsDTO detailsDTO = appointmentService.getAppointmentDetails(appointmentId, auth.getName());
+            return ResponseEntity.ok(detailsDTO);
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Collections.singletonMap("error", e.getMessage()));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("error", "Lỗi hệ thống: " + e.getMessage()));
+        }
+    }
+
 }
