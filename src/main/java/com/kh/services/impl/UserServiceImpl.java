@@ -6,6 +6,7 @@ import com.kh.dtos.DoctorProfileDTO;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.kh.dtos.PaginatedResponseDTO;
 import com.kh.exceptions.FileUploadException;
 import com.kh.pojo.Hospital;
 import com.kh.pojo.Specialty;
@@ -192,5 +193,10 @@ public UserDTO addPatientUser(UserDTO patientDTO) throws FileUploadException {
         } catch (FileUploadException e) {
             throw new FileUploadException("Không thể tải ảnh lên!");
         }
+    }
+
+    @Override
+    public PaginatedResponseDTO<DoctorProfileDTO> getDoctors(int page, int pageSize) {
+        return null;
     }
 }

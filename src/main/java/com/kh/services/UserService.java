@@ -1,12 +1,8 @@
 package com.kh.services;
 
-import com.kh.dtos.DoctorLicenseDTO;
-import com.kh.dtos.DoctorProfileDTO;
-import com.kh.dtos.PatientProfileDTO;
+import com.kh.dtos.*;
 import com.kh.exceptions.FileUploadException;
 import org.springframework.security.core.userdetails.UserDetailsService;
-
-import com.kh.dtos.UserDTO;
 
 public interface UserService extends UserDetailsService {
     void authenticate(String username, String password);
@@ -16,4 +12,6 @@ public interface UserService extends UserDetailsService {
     UserDTO getUserByUsername(String username);
     
     DoctorProfileDTO addDoctorUser(UserDTO doctorDTO, DoctorLicenseDTO doctorLicense, Long hospitalId) throws FileUploadException;
+
+    PaginatedResponseDTO<DoctorProfileDTO> getDoctors(int page, int pageSize);
 }

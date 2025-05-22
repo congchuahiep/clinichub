@@ -74,6 +74,14 @@ public class UserRepositoryImpl extends AbstractRepository implements UserReposi
     }
 
     @Override
+    public List<User> doctorList() {
+        Session session = getCurrentSession();
+
+        Query<User> q = session.createQuery("FROM User WHERE role = 'doctor'", User.class);
+        return q.getResultList();
+    }
+
+    @Override
     public Optional<User> findById(long id) {
         Session session = getCurrentSession();
         Query<User> query = session.createQuery("FROM User WHERE id = :id", User.class);

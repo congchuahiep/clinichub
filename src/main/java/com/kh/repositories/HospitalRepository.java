@@ -9,7 +9,7 @@ import java.util.Optional;
 public interface HospitalRepository {
     Optional<Hospital> findById(Long id);
 
-    List<Hospital> getHospitalList();
+    List<Hospital> list();
 
     void registerDoctorToHospital(Hospital hospital, User doctor);
 }
