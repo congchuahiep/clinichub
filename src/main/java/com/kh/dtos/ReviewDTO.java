@@ -1,6 +1,7 @@
 package com.kh.dtos;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.kh.pojo.Review;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -35,7 +36,15 @@ public class ReviewDTO {
     public ReviewDTO() {
     }
 
-
+    public ReviewDTO(Review review) {
+        this.id = review.getId();
+        this.rating = review.getRating();
+        this.comment = review.getComment();
+        this.doctorResponse = review.getDoctorResponse();
+        this.createdAt = review.getCreatedAt();
+        this.doctorId = review.getDoctorId().getId();
+        this.patient = new UserDTO(review.getPatientId());
+    }
 
     public Long getId() {
         return id;

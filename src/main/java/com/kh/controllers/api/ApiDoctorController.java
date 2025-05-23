@@ -77,7 +77,7 @@ class ApiDoctorController {
      * Cho phép bệnh nhân (đã khám bác sĩ này) được đánh giá bác sĩ
      * </p>
      */
-    @PostMapping("/secure/doctors/{id}")
+    @PostMapping("/secure/doctors/{id}/reviews")
     public ResponseEntity<?> ratingDoctor(
             @PathVariable("id") Long doctorId,
             @RequestBody ReviewDTO reviewDTO,
@@ -95,5 +95,16 @@ class ApiDoctorController {
         ReviewDTO dto = reviewService.ratingDoctor(reviewDTO);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+    }
+
+    @GetMapping("/doctors/{id}/reviews")
+    public ResponseEntity<?> getDoctorReviews(
+            @PathVariable("id") Long doctorId,
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size
+    ) {
+        PaginatedResponseDTO<ReviewDTO> reviews = reviewService.getDoctorReviews(doctorId, page, size);
+
+        return ResponseEntity.ok(reviews);
     }
 }
