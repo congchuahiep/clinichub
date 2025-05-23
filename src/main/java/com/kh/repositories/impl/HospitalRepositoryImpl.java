@@ -36,7 +36,7 @@ public class HospitalRepositoryImpl extends AbstractRepository implements Hospit
     }
 
     @Override
-    public List<Hospital> getHospitalList() {
+    public List<Hospital> list() {
         Session session = this.getCurrentSession();
         Query<Hospital> query = session.createQuery("FROM Hospital", Hospital.class);
 

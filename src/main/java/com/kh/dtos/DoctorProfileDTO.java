@@ -4,20 +4,46 @@
  */
 package com.kh.dtos;
 
+import com.kh.pojo.User;
+
+import java.util.Set;
+import java.util.stream.Collectors;
+
 /**
- *
  * @author Admin
  */
 public class DoctorProfileDTO {
     private UserDTO doctorDTO;
-    private DoctorLicenseDTO doctorLicenseDTO;
-    private String hospitalName;
-    
-    public DoctorProfileDTO(UserDTO userDTO, DoctorLicenseDTO doctorLicenseDTO, String hospitalName) {
-        this.doctorDTO = userDTO;
-        this.doctorLicenseDTO = doctorLicenseDTO;
-        this.hospitalName = hospitalName;
+    private Set<DoctorLicenseDTO> doctorLicenseDTOSet;
+    private Set<HospitalDTO> hospitalDTOSet;
+
+    public DoctorProfileDTO() {
+
     }
+
+    public DoctorProfileDTO(UserDTO doctorDTO, DoctorLicenseDTO doctorLicenseDTO) {
+        this.doctorDTO = doctorDTO;
+    }
+
+    public DoctorProfileDTO(User doctor) {
+        this.setDoctorDTO(new UserDTO(doctor));
+        this.setHospitalDTOSet(doctor.getHospitalSet()
+                .stream()
+                .map(HospitalDTO::new)
+                .collect(Collectors.toSet())
+        );
+        this.setDoctorLicenseDTOSet(doctor.getDoctorLicenseSet()
+                .stream()
+                .map(DoctorLicenseDTO::new)
+                .collect(Collectors.toSet())
+        );
+    }
+//
+//    public DoctorProfileDTO(UserDTO userDTO, Set<DoctorLicenseDTO> doctorLicenseDTOSet, Set<HospitalDTO> hospitalDTOSet) {
+//        this.doctorDTO = userDTO;
+//        this.doctorLicenseDTOSet = doctorLicenseDTOSet;
+//        this.hospitalDTOSet = hospitalDTOSet;
+//    }
 
     /**
      * @return the doctorDTO
@@ -36,22 +62,22 @@ public class DoctorProfileDTO {
     /**
      * @return the doctorLicenseDTO
      */
-    public DoctorLicenseDTO getDoctorLicenseDTO() {
-        return doctorLicenseDTO;
+    public Set<DoctorLicenseDTO> getDoctorLicenseDTOSet() {
+        return doctorLicenseDTOSet;
     }
 
     /**
-     * @param doctorLicenseDTO the doctorLicenseDTO to set
+     * @param doctorLicenseDTOSet the doctorLicenseDTO to set
      */
-    public void setDoctorLicenseDTO(DoctorLicenseDTO doctorLicenseDTO) {
-        this.doctorLicenseDTO = doctorLicenseDTO;
+    public void setDoctorLicenseDTOSet(Set<DoctorLicenseDTO> doctorLicenseDTOSet) {
+        this.doctorLicenseDTOSet = doctorLicenseDTOSet;
     }
 
-    public String getHospitalName() {
-        return hospitalName;
+    public Set<HospitalDTO> getHospitalDTOSet() {
+        return hospitalDTOSet;
     }
 
-    public void setHospitalName(String hospitalName) {
-        this.hospitalName = hospitalName;
+    public void setHospitalDTOSet(Set<HospitalDTO> hospitalDTOSet) {
+        this.hospitalDTOSet = hospitalDTOSet;
     }
 }

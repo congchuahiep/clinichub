@@ -15,7 +15,11 @@ import java.util.Optional;
  *
  */
 public interface UserRepository {
+    User save(User user) throws UsernameAlreadyExistsException, EmailAlreadyExistsException, IllegalStateException;
+
     List<User> list();
+
+    List<User> doctorList(int page, int pageSize, Long hospitalId, Long specialtyId, String doctorName);
 
     Optional<User> findById(long id);
 
@@ -25,5 +29,5 @@ public interface UserRepository {
 
     Optional<User> findDoctorByUsername(String username);
 
-    User save(User user) throws UsernameAlreadyExistsException, EmailAlreadyExistsException, IllegalStateException;
+    Long countDoctor(Long hospitalId, Long specialtyId, String doctorName);
 }

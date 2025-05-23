@@ -64,6 +64,7 @@ public class Hospital implements Serializable {
     @Column(name = "updated_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date updatedAt;
+
     @JoinTable(name = "user_hospitals", joinColumns = {
         @JoinColumn(name = "hospital_id", referencedColumnName = "id")}, inverseJoinColumns = {
         @JoinColumn(name = "user_id", referencedColumnName = "id")})

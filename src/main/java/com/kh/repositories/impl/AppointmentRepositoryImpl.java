@@ -63,7 +63,9 @@ public class AppointmentRepositoryImpl extends AbstractRepository implements App
     public Optional<Appointment> findById(Long id) {
         Session session = getCurrentSession();
         Query<Appointment> query = session.createQuery(
-                "FROM Appointment WHERE id = :id",
+                "FROM Appointment a" +
+                        " LEFT JOIN FETCH a.medicalRecord" +
+                        " WHERE a.id = :id",
                 Appointment.class
         );
 
