@@ -8,12 +8,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-public interface AppointmentRepository {
-    Appointment save(Appointment appointment);
-
-    Appointment update(Appointment appointment);
-
-    Optional<Appointment> findById(Long id);
+public interface AppointmentRepository extends GenericRepository<Appointment, Long> {
 
     List<Appointment> findByPatientId(Long patientId);
 

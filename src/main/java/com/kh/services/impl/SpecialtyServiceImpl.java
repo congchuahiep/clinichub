@@ -1,7 +1,6 @@
 package com.kh.services.impl;
 
 import com.kh.dtos.SpecialtyDTO;
-import com.kh.pojo.Specialty;
 import com.kh.repositories.SpecialtyRepository;
 import com.kh.services.SpecialtyService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +15,6 @@ public class SpecialtyServiceImpl implements SpecialtyService {
 
     @Override
     public List<SpecialtyDTO> getSpecialtyList() {
-        return specialtyRepository.findAll();
+        return specialtyRepository.list().stream().map(SpecialtyDTO::new).toList();
     }
 }

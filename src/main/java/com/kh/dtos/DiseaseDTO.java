@@ -1,5 +1,7 @@
 package com.kh.dtos;
 
+import com.kh.pojo.Disease;
+
 public class DiseaseDTO {
     private Long id;
 
@@ -11,6 +13,12 @@ public class DiseaseDTO {
         this.id = id;
         this.name = name;
         this.description = description;
+    }
+
+    public DiseaseDTO(Disease disease) {
+        this.id = disease.getId();
+        this.name = disease.getName();
+        this.description = disease.getDescription();
     }
 
     public String getName() {

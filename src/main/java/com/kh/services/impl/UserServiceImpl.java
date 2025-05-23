@@ -5,9 +5,11 @@ import com.kh.dtos.DoctorProfileDTO;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import com.kh.dtos.PaginatedResponseDTO;
+import com.kh.utils.PaginatedResult;
 import com.kh.exceptions.FileUploadException;
 import com.kh.pojo.Hospital;
 import com.kh.pojo.Specialty;
@@ -210,27 +212,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
-    public PaginatedResponseDTO<DoctorProfileDTO> getDoctors(
-            int page,
-            int pageSize,
-            Long hospitalId,
-            Long specialtyId,
-            String doctorName
-    ) {
-
-        Long totalDoctors = this.userRepository.countDoctor(hospitalId, specialtyId, doctorName);
-
-        List<User> doctors = this.userRepository.doctorList(page, pageSize, hospitalId, specialtyId, doctorName);
-
-        List<DoctorProfileDTO> doctorProfileDTOS = doctors
-                .stream()
-                .map(DoctorProfileDTO::new)
-                .toList();
-
-        return new PaginatedResponseDTO<>(
-                doctorProfileDTOS, page, pageSize, totalDoctors,
-                (int) Math.ceil(totalDoctors / (double) pageSize)
-        );
+    public PaginatedResult<DoctorProfileDTO> getDoctors(Map<String, String> params) {
+        PaginatedResult<User> doctors = this.userRepository.doctorList(params);
+        return doctors.mapTo(DoctorProfileDTO::new);
     }
 }

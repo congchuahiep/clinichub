@@ -1,8 +1,8 @@
 package com.kh.services.impl;
 
-import java.util.List;
 import java.util.Map;
 
+import com.kh.utils.PaginatedResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,11 +18,10 @@ public class DiseaseServiceImpl implements DiseaseService {
     DiseaseRepository diseaseRepository;
 
     @Override
-    public List<DiseaseDTO> getDiseaseList(Map<String, String> params) {
-        List<Disease> diseases = diseaseRepository.list(params);
+    public PaginatedResult<DiseaseDTO> getDiseaseList(Map<String, String> params) {
 
-        return diseases.stream()
-                .map(disease -> new DiseaseDTO(disease.getId(), disease.getName(), disease.getDescription()))
-                .toList();
+        PaginatedResult<Disease> diseases = diseaseRepository.paginatedList(params);
+
+        return diseases.mapTo(DiseaseDTO::new);
     }
 }

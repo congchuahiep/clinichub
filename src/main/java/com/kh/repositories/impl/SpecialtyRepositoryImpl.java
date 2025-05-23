@@ -14,22 +14,10 @@ import java.util.Optional;
 
 @Repository
 @Transactional
-public class SpecialtyRepositoryImpl extends AbstractRepository implements SpecialtyRepository {
+public class SpecialtyRepositoryImpl extends AbstractRepository<Specialty, Long> implements SpecialtyRepository {
 
-    public SpecialtyRepositoryImpl(LocalSessionFactoryBean factory) {
-        this.factory = factory;
-    }
-
-    @Override
-    public Optional<Specialty> findById(Long id) {
-        Session session = getCurrentSession();
-
-        try {
-            Specialty specialty = session.get(Specialty.class, id);
-            return Optional.ofNullable(specialty);
-        } catch (Exception e) {
-            return Optional.empty();
-        }
+    public SpecialtyRepositoryImpl() {
+        super(Specialty.class);
     }
 
     @Override

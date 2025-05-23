@@ -1,7 +1,7 @@
 package com.kh.services.impl;
 
 import com.kh.dtos.MedicalRecordDTO;
-import com.kh.dtos.PaginatedResponseDTO;
+import com.kh.utils.PaginatedResult;
 import com.kh.pojo.*;
 import com.kh.repositories.*;
 import com.kh.services.MedicalRecordService;
@@ -50,7 +50,7 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
             throw new RuntimeException("Bác sĩ chỉ được xem hồ sơ của bệnh nhân đã có lịch hẹn");
         }
 
-        HealthRecord healthRecord = healthRecordRepository.findById(appointment.getPatientId().getId())
+        HealthRecord healthRecord = healthRecordRepository.findById(appointment.getPatientId())
                 .orElseThrow(() -> new RuntimeException("Hồ sơ sức khoẻ này không tồn tại!"));
 
         Disease disease = medicalRecordDTO.getDiseaseId() != null
@@ -79,7 +79,7 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
 
     @Override
     @Transactional
-    public PaginatedResponseDTO<MedicalRecordDTO> getMedicalRecords(Long patientId, int page, int pageSize) {
+    public PaginatedResult<MedicalRecordDTO> getMedicalRecords(Long patientId, int page, int pageSize) {
         Long totalElement = medicalRecordRepository.countByPatientId(patientId);
 
         List<MedicalRecord> records = medicalRecordRepository.findByPatientId(patientId, page, pageSize);
@@ -88,15 +88,12 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
                 .map(MedicalRecordDTO::new)
                 .toList();
 
-        return new PaginatedResponseDTO<>(
-                dtos, page, pageSize, totalElement,
-                (int) Math.ceil(totalElement / (double) pageSize)
-        );
+        return new PaginatedResult<>(dtos, page, pageSize, totalElement);
     }
 
     @Override
     @Transactional
-    public PaginatedResponseDTO<MedicalRecordDTO> doctorGetMedicalRecords(Long doctorId, Long patientId, int page, int pageSize) {
+    public PaginatedResult<MedicalRecordDTO> doctorGetMedicalRecords(Long doctorId, Long patientId, int page, int pageSize) {
         // Kiểm tra bác sĩ có lịch khám với bệnh nhân này hay không
         if (!this.appointmentRepository.existsAppointmentBetweenDoctorAndPatient(doctorId, patientId)) {
             throw new RuntimeException("Bác sĩ chỉ được xem hồ sơ của bệnh nhân đã có lịch hẹn");

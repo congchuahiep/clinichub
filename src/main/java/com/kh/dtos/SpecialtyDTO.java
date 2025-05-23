@@ -1,12 +1,22 @@
 package com.kh.dtos;
 
+import com.kh.pojo.Specialty;
+
 public class SpecialtyDTO {
     private Long id;
     private String name;
 
+    public SpecialtyDTO() {
+    }
+
     public SpecialtyDTO(Long id, String name) {
         this.id = id;
         this.name = name;
+    }
+
+    public SpecialtyDTO(Specialty specialty) {
+        this.id = specialty.getId();
+        this.name = specialty.getName();
     }
 
     public Long getId() {

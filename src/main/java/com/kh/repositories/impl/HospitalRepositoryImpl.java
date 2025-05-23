@@ -16,35 +16,10 @@ import java.util.Optional;
 
 @Repository
 @Transactional
-public class HospitalRepositoryImpl extends AbstractRepository implements HospitalRepository {
+public class HospitalRepositoryImpl extends AbstractRepository<Hospital, Long> implements HospitalRepository {
 
-    public HospitalRepositoryImpl(LocalSessionFactoryBean factory) {
-        this.factory = factory;
-    }
-
-    @Override
-    public Optional<Hospital> findById(Long id) {
-        Session session = this.getCurrentSession();
-        Query<Hospital> query = session.createQuery("FROM Hospital WHERE id = :id", Hospital.class);
-        query.setParameter("id", id);
-
-        try {
-            return Optional.ofNullable(query.getSingleResult());
-        } catch (Exception e) {
-            return Optional.empty();
-        }
-    }
-
-    @Override
-    public List<Hospital> list() {
-        Session session = this.getCurrentSession();
-        Query<Hospital> query = session.createQuery("FROM Hospital", Hospital.class);
-
-        try {
-            return query.getResultList();
-        } catch (Exception e) {
-            return null;
-        }
+    public HospitalRepositoryImpl() {
+        super(Hospital.class);
     }
 
     @Override

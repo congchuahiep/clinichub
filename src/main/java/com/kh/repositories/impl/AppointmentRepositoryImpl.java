@@ -17,24 +17,10 @@ import java.util.Optional;
 
 @Repository
 @Transactional
-public class AppointmentRepositoryImpl extends AbstractRepository implements AppointmentRepository {
+public class AppointmentRepositoryImpl extends AbstractRepository<Appointment, Long> implements AppointmentRepository {
 
-    public AppointmentRepositoryImpl(LocalSessionFactoryBean factory) {
-        this.factory = factory;
-    }
-
-    @Override
-    public Appointment save(Appointment appointment) {
-        Session session = getCurrentSession();
-        session.persist(appointment);
-        return appointment;
-    }
-
-    @Override
-    public Appointment update(Appointment appointment) {
-        Session session = getCurrentSession();
-        session.merge(appointment);
-        return appointment;
+    public AppointmentRepositoryImpl() {
+        super(Appointment.class);
     }
 
     @Override
@@ -56,26 +42,6 @@ public class AppointmentRepositoryImpl extends AbstractRepository implements App
                 .getSingleResult();
 
         return count > 0;
-    }
-
-
-    @Override
-    public Optional<Appointment> findById(Long id) {
-        Session session = getCurrentSession();
-        Query<Appointment> query = session.createQuery(
-                "FROM Appointment a" +
-                        " LEFT JOIN FETCH a.medicalRecord" +
-                        " WHERE a.id = :id",
-                Appointment.class
-        );
-
-        query.setParameter("id", id);
-
-        try {
-            return Optional.of(query.getSingleResult());
-        } catch (Exception e) {
-            return Optional.empty();
-        }
     }
 
     // Phương thức lấy danh sách lịch hẹn của bệnh nhân

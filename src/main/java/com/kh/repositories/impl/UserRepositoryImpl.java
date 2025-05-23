@@ -4,17 +4,16 @@
  */
 package com.kh.repositories.impl;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import com.kh.enums.UserRole;
 import com.kh.pojo.DoctorLicense;
 import com.kh.pojo.Hospital;
+import com.kh.utils.PaginatedResult;
 import jakarta.persistence.criteria.*;
 import org.hibernate.Session;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.query.Query;
-import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,27 +23,19 @@ import com.kh.exceptions.UsernameAlreadyExistsException;
 import com.kh.pojo.User;
 import com.kh.repositories.AbstractRepository;
 import com.kh.repositories.UserRepository;
-import jakarta.persistence.EntityManager;
 
 import jakarta.persistence.NoResultException;
-import jakarta.persistence.PersistenceContext;
-
-import java.util.Optional;
 
 /**
  * @author congchuahiep
  */
 @Repository
 @Transactional
-public class UserRepositoryImpl extends AbstractRepository implements UserRepository {
+public class UserRepositoryImpl extends AbstractRepository<User, Long> implements UserRepository {
 
-    public UserRepositoryImpl(LocalSessionFactoryBean factory) {
-        this.factory = factory;
+    public UserRepositoryImpl() {
+        super(User.class);
     }
-
-    @PersistenceContext
-    private EntityManager em;
-
 
     /**
      * Thêm đối tượng User dùng vào cơ sở dữ liệu
@@ -55,11 +46,9 @@ public class UserRepositoryImpl extends AbstractRepository implements UserReposi
     @Override
     public User save(User user) throws UsernameAlreadyExistsException, EmailAlreadyExistsException, IllegalStateException {
         try {
-            Session session = getCurrentSession();
-            session.persist(user);
+            super.save(user);
         } catch (ConstraintViolationException ex) {
             String message = ex.getMessage();
-
             if (message.contains("username")) {
                 throw new UsernameAlreadyExistsException("Username này đã có người khác sử dụng!");
             } else if (message.contains("email")) {
@@ -71,15 +60,7 @@ public class UserRepositoryImpl extends AbstractRepository implements UserReposi
     }
 
     @Override
-    public List<User> list() {
-        Session session = getCurrentSession();
-
-        Query<User> q = session.createQuery("FROM User", User.class);
-        return q.getResultList();
-    }
-
-    @Override
-    public List<User> doctorList(int page, int pageSize, Long hospitalId, Long specialtyId, String doctorName) {
+    public PaginatedResult<User> doctorList(Map<String, String> params) {
         Session session = getCurrentSession();
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<User> criteria = builder.createQuery(User.class);
@@ -90,8 +71,19 @@ public class UserRepositoryImpl extends AbstractRepository implements UserReposi
         Fetch<User, Hospital> hospitalFetch = root.fetch("hospitalSet", JoinType.LEFT);
         doctorLicenseFetch.fetch("specialtyId", JoinType.LEFT);
 
-        // Xử lý vị ngữ (các điều kiện truy vấn)
-        List<Predicate> predicates = createDoctorPredicates(builder, root, hospitalId, specialtyId, doctorName);
+
+        List<Predicate> predicates = new ArrayList<>();
+        int page = 1;
+        int pageSize = 10;
+
+        if (params != null && !params.isEmpty()) {
+            // Xử lý vị ngữ (các điều kiện truy vấn)
+            predicates = createDoctorPredicates(builder, root, params);
+
+            // Xử lý phân trang
+            page = Integer.parseInt(params.getOrDefault("page", "1"));
+            pageSize = Integer.parseInt(params.getOrDefault("pageSize", "10"));
+        }
 
         // Đổi các vị ngữ thành điều kiện truy vấn)
         criteria.where(predicates.toArray(new Predicate[0]));
@@ -103,25 +95,17 @@ public class UserRepositoryImpl extends AbstractRepository implements UserReposi
         query.setFirstResult((page - 1) * pageSize);
         query.setMaxResults(pageSize);
 
-        return query.getResultList();
+        List<User> result = query.getResultList();
+        Long count = this.countDoctor(params);
+
+        return new PaginatedResult<>(
+                result, page, pageSize, count
+        );
 
     }
 
     @Override
-    public Optional<User> findById(long id) {
-        Session session = getCurrentSession();
-        Query<User> query = session.createQuery("FROM User WHERE id = :id", User.class);
-        query.setParameter("id", id);
-
-        try {
-            return Optional.ofNullable(query.getSingleResult());
-        } catch (NoResultException e) {
-            return Optional.empty();
-        }
-    }
-
-    @Override
-    public Optional<User> findDoctorById(long id) {
+    public Optional<User> findDoctorById(Long id) {
         Session session = getCurrentSession();
         Query<User> query = session.createQuery(
                 "FROM User WHERE id = :id AND role = :role AND isActive = true",
@@ -185,7 +169,7 @@ public class UserRepositoryImpl extends AbstractRepository implements UserReposi
     }
 
     @Override
-    public Long countDoctor(Long hospitalId, Long specialtyId, String doctorName) {
+    public Long countDoctor(Map<String, String> params) {
         Session session = getCurrentSession();
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<Long> criteria = builder.createQuery(Long.class);
@@ -195,11 +179,10 @@ public class UserRepositoryImpl extends AbstractRepository implements UserReposi
         criteria.select(builder.countDistinct(root));
 
         // Add predicates
-        List<Predicate> predicates = createDoctorPredicates(builder, root, hospitalId, specialtyId, doctorName);
+        List<Predicate> predicates = createDoctorPredicates(builder, root, params);
         criteria.where(predicates.toArray(new Predicate[0]));
 
         return session.createQuery(criteria).getSingleResult();
-
     }
 
 
@@ -212,9 +195,8 @@ public class UserRepositoryImpl extends AbstractRepository implements UserReposi
     private List<Predicate> createDoctorPredicates(
             CriteriaBuilder builder,
             Root<User> root,
-            Long hospitalId,
-            Long specialtyId,
-            String doctorName) {
+            Map<String, String> params
+    ) {
 
         // Tạo danh sách các vị ngữ (tức mấy câu điều kiện lọc)
         List<Predicate> predicates = new ArrayList<>();
@@ -224,18 +206,21 @@ public class UserRepositoryImpl extends AbstractRepository implements UserReposi
         predicates.add(builder.isTrue(root.get("isActive")));
 
         // Tìm kiếm theo bệnh viên
+        Long hospitalId = params.containsKey("hospitalId") ? Long.parseLong(params.get("hospitalId")) : null;
         if (hospitalId != null) {
             Join<User, Hospital> hospitalJoin = root.join("hospitalSet", JoinType.INNER);
             predicates.add(builder.equal(hospitalJoin.get("id"), hospitalId));
         }
 
         // Tìm kiếm theo chuyên khoa
+        Long specialtyId = params.containsKey("specialtyId") ? Long.parseLong(params.get("specialtyId")) : null;
         if (specialtyId != null) {
             Join<User, DoctorLicense> licenseJoin = root.join("doctorLicenseSet", JoinType.INNER);
             predicates.add(builder.equal(licenseJoin.get("specialtyId").get("id"), specialtyId));
         }
 
-        // Tìm kiếm heo tên bác sĩ
+        // Tìm kiếm theo tên bác sĩ
+        String doctorName = params.getOrDefault("doctorName", null);
         if (doctorName != null && !doctorName.trim().isEmpty()) {
             String pattern = "%" + doctorName.toLowerCase() + "%";
             Predicate firstNameMatch = builder.like(builder.lower(root.get("firstName")), pattern);

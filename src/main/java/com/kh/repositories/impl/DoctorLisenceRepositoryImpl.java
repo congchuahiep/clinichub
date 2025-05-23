@@ -17,20 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Repository
 @Transactional
-public class DoctorLisenceRepositoryImpl extends AbstractRepository implements DoctorLisenceRepository {
+public class DoctorLisenceRepositoryImpl extends AbstractRepository<DoctorLicense, Long> implements DoctorLisenceRepository {
 
-
-    @Override
-    public DoctorLicense save(DoctorLicense doctorLisence) {
-        Session session = this.getCurrentSession();
-        session.persist(doctorLisence);
-        return doctorLisence;
-    }
-
-    @Override
-    public DoctorLicense update(DoctorLicense doctorLisence) {
-        Session session = this.getCurrentSession();
-        session.merge(doctorLisence);
-        return doctorLisence;
+    protected DoctorLisenceRepositoryImpl() {
+        super(DoctorLicense.class);
     }
 }

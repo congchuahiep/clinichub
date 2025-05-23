@@ -1,7 +1,7 @@
 package com.kh.controllers.api;
 
 import com.kh.dtos.DoctorProfileDTO;
-import com.kh.dtos.PaginatedResponseDTO;
+import com.kh.utils.PaginatedResult;
 import com.kh.dtos.ReviewDTO;
 import com.kh.enums.UserRole;
 import com.kh.services.ReviewService;
@@ -13,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -38,21 +40,9 @@ class ApiDoctorController {
      * </p>
      */
     @GetMapping("/doctors")
-    public ResponseEntity<?> getDoctors(
-            @RequestParam(name = "page", defaultValue = "1") int page,
-            @RequestParam(name = "size", defaultValue = "10") int size,
-            @RequestParam(name = "hospitalId", required = false) Long hospitalId,
-            @RequestParam(name = "specialtyId", required = false) Long specialtyId,
-            @RequestParam(name = "doctorName", required = false) String doctorName
-    ) {
+    public ResponseEntity<?> getDoctors(@RequestParam Map<String, String> params) {
 
-        PaginatedResponseDTO<DoctorProfileDTO> response = userService.getDoctors(
-                page,
-                size,
-                hospitalId,
-                specialtyId,
-                doctorName
-        );
+        PaginatedResult<DoctorProfileDTO> response = userService.getDoctors(params);
 
         return ResponseEntity.ok(response);
     }
@@ -107,10 +97,9 @@ class ApiDoctorController {
     @GetMapping("/doctors/{id}/reviews")
     public ResponseEntity<?> getDoctorReviews(
             @PathVariable("id") Long doctorId,
-            @RequestParam(name = "page", defaultValue = "1") int page,
-            @RequestParam(name = "size", defaultValue = "10") int size
+            Map<String, String> params
     ) {
-        PaginatedResponseDTO<ReviewDTO> reviews = reviewService.getDoctorReviews(doctorId, page, size);
+        PaginatedResult<ReviewDTO> reviews = reviewService.getDoctorReviews(doctorId, params);
 
         return ResponseEntity.ok(reviews);
     }

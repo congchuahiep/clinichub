@@ -1,8 +1,11 @@
-package com.kh.dtos;
+package com.kh.utils;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
-public class PaginatedResponseDTO<T> {
+public class PaginatedResult<T> {
     private List<T> results;
     private int pageNumber;
     private int pageSize;
@@ -11,12 +14,18 @@ public class PaginatedResponseDTO<T> {
     
     // constructors, getters, setters
 
-    public PaginatedResponseDTO(List<T> content, int pageNumber, int pageSize, long totalElements, int totalPages) {
+    public PaginatedResult(List<T> content, int pageNumber, int pageSize, long totalElements) {
         this.results = content;
         this.pageNumber = pageNumber;
         this.pageSize = pageSize;
         this.totalElements = totalElements;
-        this.totalPages = totalPages;
+        this.totalPages = (int) Math.ceil(totalElements / (double) pageSize);
+    }
+
+    public PaginatedResult(List<T> content, int pageNumber, int pageSize) {
+        this.results = content;
+        this.pageNumber = pageNumber;
+        this.pageSize = pageSize;
     }
 
     public List<T> getResults() {
@@ -58,4 +67,21 @@ public class PaginatedResponseDTO<T> {
     public void setTotalPages(int totalPages) {
         this.totalPages = totalPages;
     }
+
+    public Stream<T> stream() {
+        return results.stream();
+    }
+
+    /**
+     * Phương thức này dùng để đổi một PaginatedResult chứa kiểu R thành kiểu -> T
+     */
+    public <R> PaginatedResult<R> mapTo(Function<T, R> constructor) {
+        List<R> mappedItems = this.stream()
+                .map(constructor)
+                .toList();
+
+        return new PaginatedResult<>(mappedItems, this.pageNumber, this.pageSize, this.totalElements);
+    }
+
+
 }

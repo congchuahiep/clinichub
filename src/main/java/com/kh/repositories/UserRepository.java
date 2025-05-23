@@ -7,27 +7,25 @@ package com.kh.repositories;
 import com.kh.exceptions.EmailAlreadyExistsException;
 import com.kh.exceptions.UsernameAlreadyExistsException;
 import com.kh.pojo.User;
+import com.kh.utils.PaginatedResult;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
  *
  */
-public interface UserRepository {
+public interface UserRepository extends GenericRepository<User, Long> {
     User save(User user) throws UsernameAlreadyExistsException, EmailAlreadyExistsException, IllegalStateException;
 
-    List<User> list();
+    PaginatedResult<User> doctorList(Map<String, String> params);
 
-    List<User> doctorList(int page, int pageSize, Long hospitalId, Long specialtyId, String doctorName);
-
-    Optional<User> findById(long id);
-
-    Optional<User> findDoctorById(long id);
+    Optional<User> findDoctorById(Long id);
 
     Optional<User> findByUsername(String username);
 
     Optional<User> findDoctorByUsername(String username);
 
-    Long countDoctor(Long hospitalId, Long specialtyId, String doctorName);
+    Long countDoctor(Map<String, String> params);
 }

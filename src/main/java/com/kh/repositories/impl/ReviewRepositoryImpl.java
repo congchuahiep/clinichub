@@ -3,41 +3,26 @@ package com.kh.repositories.impl;
 import com.kh.pojo.Review;
 import com.kh.repositories.AbstractRepository;
 import com.kh.repositories.ReviewRepository;
+import com.kh.utils.PaginatedResult;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
 @Repository
 @Transactional
-public class ReviewRepositoryImpl extends AbstractRepository implements ReviewRepository {
-    @Override
-    public Review save(Review review) {
-        Session session = this.getCurrentSession();
-        session.persist(review);
-        return review;
-    }
+public class ReviewRepositoryImpl extends AbstractRepository<Review, Long> implements ReviewRepository {
 
-    @Override
-    public Review update(Review review) {
-        Session session = this.getCurrentSession();
-        session.merge(review);
-        return review;
-    }
-
-    @Override
-    public Optional<Review> findById(Long reviewId) {
-        Session session = this.getCurrentSession();
-        Query<Review> query = session.createQuery("FROM Review r WHERE r.id = :id", Review.class);
-        query.setParameter("id", reviewId);
-        try {
-            return Optional.ofNullable(query.getSingleResult());
-        } catch (Exception e) {
-            return Optional.empty();
-        }
+    public ReviewRepositoryImpl() {
+        super(Review.class);
     }
 
     @Override
@@ -57,21 +42,17 @@ public class ReviewRepositoryImpl extends AbstractRepository implements ReviewRe
     }
 
     @Override
-    public List<Review> doctorReviewList(Long doctorId, int page, int pageSize) {
+    public PaginatedResult<Review> doctorReviewList(Long doctorId, Map<String, String> params) {
         Session session = this.getCurrentSession();
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<Review> criteriaQuery = builder.createQuery(Review.class);
+        Root<Review> root = criteriaQuery.from(Review.class);
 
-        String hql = "FROM Review r " +
-                "LEFT JOIN FETCH r.patientId " +
-                "WHERE r.doctorId.id = :doctorId " +
-                "ORDER BY r.createdAt DESC";
+        List<Predicate> predicates = new ArrayList<>();
+        predicates.add(builder.equal(root.get("doctorId").get("id"), doctorId));
 
-        Query<Review> query = session.createQuery(hql, Review.class);
-
-        query.setFirstResult((page - 1) * pageSize);
-        query.setMaxResults(pageSize);
-        query.setParameter("doctorId", doctorId);
-
-        return query.getResultList();
+//        return this.executeListQuery(this, session, builder, criteriaQuery, root, params);
+        return null;
     }
 
     @Override

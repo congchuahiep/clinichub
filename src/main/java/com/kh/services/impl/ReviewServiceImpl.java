@@ -1,6 +1,6 @@
 package com.kh.services.impl;
 
-import com.kh.dtos.PaginatedResponseDTO;
+import com.kh.utils.PaginatedResult;
 import com.kh.dtos.ReviewDTO;
 import com.kh.dtos.UserDTO;
 import com.kh.pojo.Review;
@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class ReviewServiceImpl implements ReviewService {
@@ -58,18 +60,9 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Transactional
     @Override
-    public PaginatedResponseDTO<ReviewDTO> getDoctorReviews(Long doctorId, int page, int pageSize) {
-
-        Long totalElements = reviewRepository.countDoctorReview(doctorId);
-
-        List<Review> reviews = reviewRepository.doctorReviewList(doctorId, page, pageSize);
-
-        List<ReviewDTO> reviewDTOS = reviews.stream().map(ReviewDTO::new).toList();
-
-        return new PaginatedResponseDTO<>(
-                reviewDTOS, page, pageSize, totalElements,
-                (int) Math.ceil(totalElements / (double) pageSize)
-        );
+    public PaginatedResult<ReviewDTO> getDoctorReviews(Long doctorId, Map<String, String> params) {
+        PaginatedResult<Review> reviews = reviewRepository.doctorReviewList(doctorId, params);
+        return reviews.mapTo(ReviewDTO::new);
     }
 
     @Override

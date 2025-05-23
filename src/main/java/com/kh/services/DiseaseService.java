@@ -1,11 +1,10 @@
 package com.kh.services;
 
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import com.kh.dtos.DiseaseDTO;
+import com.kh.utils.PaginatedResult;
 
 public interface DiseaseService {
-    List<DiseaseDTO> getDiseaseList(Map<String, String> params);
+    PaginatedResult<DiseaseDTO> getDiseaseList(Map<String, String> params);
 }

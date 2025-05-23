@@ -2,7 +2,7 @@ package com.kh.controllers.api;
 
 import com.kh.dtos.HealthRecordDTO;
 import com.kh.dtos.MedicalRecordDTO;
-import com.kh.dtos.PaginatedResponseDTO;
+import com.kh.utils.PaginatedResult;
 import com.kh.dtos.PatientProfileDTO;
 import com.kh.enums.UserRole;
 import com.kh.services.HealthRecordService;
@@ -119,7 +119,7 @@ public class ApiHealthRecordController {
         securityUtils.requireRole(auth, UserRole.DOCTOR);
         Long doctorId = securityUtils.getCurrentUserId(auth);
 
-        PaginatedResponseDTO<MedicalRecordDTO> dtos = medicalRecordService.doctorGetMedicalRecords(doctorId, patientId, page, size);
+        PaginatedResult<MedicalRecordDTO> dtos = medicalRecordService.doctorGetMedicalRecords(doctorId, patientId, page, size);
 
         return ResponseEntity.ok(dtos);
     }

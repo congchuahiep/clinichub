@@ -1,8 +1,8 @@
 package com.kh.controllers.api;
 
-import java.util.List;
 import java.util.Map;
 
+import com.kh.utils.PaginatedResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,7 +26,7 @@ public class ApiDiseaseController {
      */
     @GetMapping("/diseases")
     public ResponseEntity<?> getDisease(@RequestParam Map<String, String> params) {
-        List<DiseaseDTO> diseaseDTOs = this.diseaseService.getDiseaseList(params);
+        PaginatedResult<DiseaseDTO> diseaseDTOs = this.diseaseService.getDiseaseList(params);
 
         return ResponseEntity.ok(diseaseDTOs);
     }

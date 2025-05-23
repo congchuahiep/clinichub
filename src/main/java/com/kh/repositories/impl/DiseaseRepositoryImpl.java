@@ -17,43 +17,10 @@ import com.kh.repositories.DiseaseRepository;
 
 @Repository
 @Transactional
-public class DiseaseRepositoryImpl extends AbstractRepository implements DiseaseRepository {
+public class DiseaseRepositoryImpl extends AbstractRepository<Disease, Long> implements DiseaseRepository {
 
-    private static final int PAGE_SIZE = 20;
-
-    public DiseaseRepositoryImpl(LocalSessionFactoryBean factory) {
-        this.factory = factory;
+    public DiseaseRepositoryImpl() {
+        super(Disease.class);
     }
 
-    @Override
-    public Optional<Disease> findById(Long id) {
-        Session session = getCurrentSession();
-
-        Query<Disease> query = session.createQuery(
-                "FROM Disease WHERE id = :id",
-                Disease.class
-        );
-
-        query.setParameter("id", id);
-
-        try {
-            return Optional.ofNullable(query.getSingleResult());
-        } catch (Exception e) {
-            return Optional.empty();
-        }
-    }
-
-    @Override
-    public List<Disease> list(Map<String, String> params) {
-        Session session = getCurrentSession();
-
-        Query<Disease> q = session.createQuery("FROM Disease", Disease.class);
-
-        int page = NumberUtils.toInt(params.get("page"), 1);
-
-        q.setFirstResult((page - 1) * PAGE_SIZE);
-        q.setMaxResults(PAGE_SIZE);
-
-        return q.getResultList();
-    }
 }

@@ -6,9 +6,5 @@ import java.util.Optional;
 
 import com.kh.pojo.Disease;
 
-public interface DiseaseRepository {
-
-    Optional<Disease> findById(Long id);
-
-    List<Disease> list(Map<String, String> params);
+public interface DiseaseRepository extends GenericRepository<Disease, Long> {
 }

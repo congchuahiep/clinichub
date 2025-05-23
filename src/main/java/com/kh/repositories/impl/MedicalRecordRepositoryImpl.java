@@ -1,5 +1,6 @@
 package com.kh.repositories.impl;
 
+import com.kh.pojo.Appointment;
 import com.kh.pojo.MedicalRecord;
 import com.kh.repositories.AbstractRepository;
 import com.kh.repositories.MedicalRecordRepository;
@@ -14,13 +15,10 @@ import java.util.Optional;
 
 @Repository
 @Transactional
-public class MedicalRecordRepositoryImpl extends AbstractRepository implements MedicalRecordRepository {
+public class MedicalRecordRepositoryImpl extends AbstractRepository<MedicalRecord, Appointment> implements MedicalRecordRepository {
 
-    @Override
-    public MedicalRecord save(MedicalRecord medicalRecord) {
-        Session session = getCurrentSession();
-        session.persist(medicalRecord);
-        return medicalRecord;
+    public MedicalRecordRepositoryImpl() {
+        super(MedicalRecord.class);
     }
 
     public List<MedicalRecord> findByPatientId(Long patientId, int page, int pageSize) {

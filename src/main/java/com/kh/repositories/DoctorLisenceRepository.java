@@ -10,8 +10,5 @@ import com.kh.pojo.DoctorLicense;
  *
  * @author Admin
  */
-public interface DoctorLisenceRepository {
-    DoctorLicense save(DoctorLicense doctorLisence);
-    
-    DoctorLicense update(DoctorLicense doctorLisence);
+public interface DoctorLisenceRepository extends GenericRepository<DoctorLicense, Long> {
 }
