@@ -1,5 +1,6 @@
 package com.kh.dtos;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.kh.pojo.Review;
 import jakarta.validation.constraints.Max;
@@ -21,6 +22,12 @@ public class ReviewDTO {
 
     private String doctorResponse;
 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date doctorResponseDate;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createdAt;
 
     @NotNull
@@ -41,6 +48,7 @@ public class ReviewDTO {
         this.rating = review.getRating();
         this.comment = review.getComment();
         this.doctorResponse = review.getDoctorResponse();
+        this.doctorResponseDate = review.getDoctorResponseDate();
         this.createdAt = review.getCreatedAt();
         this.doctorId = review.getDoctorId().getId();
         this.patient = new UserDTO(review.getPatientId());
@@ -108,5 +116,13 @@ public class ReviewDTO {
 
     public void setPatientId(Long patientId) {
         this.patientId = patientId;
+    }
+
+    public Date getDoctorResponseDate() {
+        return doctorResponseDate;
+    }
+
+    public void setDoctorResponseDate(Date doctorResponseDate) {
+        this.doctorResponseDate = doctorResponseDate;
     }
 }

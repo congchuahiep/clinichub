@@ -8,6 +8,7 @@ public interface ReviewService {
 
     ReviewDTO ratingDoctor(ReviewDTO reviewDTO);
 
-    @Transactional
     PaginatedResponseDTO<ReviewDTO> getDoctorReviews(Long doctorId, int page, int pageSize);
+
+    ReviewDTO doctorResponse(Long doctorId, Long reviewId, String doctorResponse);
 }

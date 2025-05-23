@@ -71,4 +71,21 @@ public class ReviewServiceImpl implements ReviewService {
                 (int) Math.ceil(totalElements / (double) pageSize)
         );
     }
+
+    @Override
+    public ReviewDTO doctorResponse(Long doctorId, Long reviewId, String doctorResponse) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new RuntimeException("Đánh giá này không tồn tại!"));
+
+        if (!review.getDoctorId().getId().equals(doctorId)) {
+            throw new RuntimeException("Bạn không có quyền phản hồi đánh giá này");
+        }
+
+        review.setDoctorResponse(doctorResponse);
+        review.setDoctorResponseDate(new java.util.Date());
+
+        reviewRepository.update(review);
+
+        return new ReviewDTO(review);
+    }
 }

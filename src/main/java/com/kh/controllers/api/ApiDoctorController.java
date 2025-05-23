@@ -71,7 +71,7 @@ class ApiDoctorController {
     }
 
     /**
-     * Endpoint: {@code POST /api/doctors/{id}}
+     * Endpoint: {@code POST /api/doctors/{id}/reviews}
      *
      * <p>
      * Cho phép bệnh nhân (đã khám bác sĩ này) được đánh giá bác sĩ
@@ -97,6 +97,13 @@ class ApiDoctorController {
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
+    /**
+     * Endpoint: {@code GET /api/doctors/{id}/reviews}
+     *
+     * <p>
+     * Xem danh sách các đánh giá của một bác sĩ
+     * </p>
+     */
     @GetMapping("/doctors/{id}/reviews")
     public ResponseEntity<?> getDoctorReviews(
             @PathVariable("id") Long doctorId,

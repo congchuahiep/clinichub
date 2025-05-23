@@ -6,16 +6,38 @@ import com.kh.repositories.ReviewRepository;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
+@Transactional
 public class ReviewRepositoryImpl extends AbstractRepository implements ReviewRepository {
     @Override
     public Review save(Review review) {
         Session session = this.getCurrentSession();
         session.persist(review);
         return review;
+    }
+
+    @Override
+    public Review update(Review review) {
+        Session session = this.getCurrentSession();
+        session.merge(review);
+        return review;
+    }
+
+    @Override
+    public Optional<Review> findById(Long reviewId) {
+        Session session = this.getCurrentSession();
+        Query<Review> query = session.createQuery("FROM Review r WHERE r.id = :id", Review.class);
+        query.setParameter("id", reviewId);
+        try {
+            return Optional.ofNullable(query.getSingleResult());
+        } catch (Exception e) {
+            return Optional.empty();
+        }
     }
 
     @Override
