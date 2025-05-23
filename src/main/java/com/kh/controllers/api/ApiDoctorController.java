@@ -43,4 +43,17 @@ class ApiDoctorController {
 
         return ResponseEntity.ok(response);
     }
+
+    /**
+     * Endpoint: {@code /api/doctors/{id}}
+     *
+     * <p>
+     * Xem thông tin chi tiết của một bác sĩ. Bao gồm cả thông tin về đánh giá bác sĩ
+     * </p>
+     */
+    @GetMapping("/doctors")
+    public ResponseEntity<?> retrieveDoctor() {
+        // TODO
+        return null;
+    }
 }

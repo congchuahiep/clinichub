@@ -44,30 +44,38 @@ public class Review implements Serializable {
     @Basic(optional = false)
     @Column(name = "id")
     private Long id;
+
     @Basic(optional = false)
     @NotNull
     @Column(name = "rating")
     private int rating;
+
     @Lob
     @Size(max = 65535)
     @Column(name = "comment")
     private String comment;
+
     @Lob
     @Size(max = 65535)
     @Column(name = "doctor_response")
     private String doctorResponse;
+
     @Column(name = "doctor_response_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date doctorResponseDate;
+
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
+
     @Column(name = "updated_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date updatedAt;
+
     @JoinColumn(name = "doctor_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private User doctorId;
+
     @JoinColumn(name = "patient_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private User patientId;

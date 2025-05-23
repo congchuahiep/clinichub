@@ -1,6 +1,5 @@
 package com.kh.pojo;
 
-import com.kh.dtos.UserDTO;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -143,11 +142,13 @@ public class User implements Serializable {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "user2Id")
     private Set<Conversation> conversationSet1;
 
+    // Những câu đánh giá bác sĩ
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "doctorId")
-    private Set<Review> reviewSet;
+    private Set<Review> reviewedSet;
 
+    // Các lần đánh giá của bệnh nhân
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "patientId")
-    private Set<Review> reviewSet1;
+    private Set<Review> reviewSet;
 
     @OneToOne(mappedBy = "patient", cascade = CascadeType.ALL)
     private HealthRecord healthRecord;
@@ -355,20 +356,20 @@ public class User implements Serializable {
         this.conversationSet1 = conversationSet1;
     }
 
+    public Set<Review> getReviewedSet() {
+        return reviewedSet;
+    }
+
+    public void setReviewedSet(Set<Review> reviewSet) {
+        this.reviewedSet = reviewSet;
+    }
+
     public Set<Review> getReviewSet() {
         return reviewSet;
     }
 
-    public void setReviewSet(Set<Review> reviewSet) {
-        this.reviewSet = reviewSet;
-    }
-
-    public Set<Review> getReviewSet1() {
-        return reviewSet1;
-    }
-
-    public void setReviewSet1(Set<Review> reviewSet1) {
-        this.reviewSet1 = reviewSet1;
+    public void setReviewSet(Set<Review> reviewSet1) {
+        this.reviewSet = reviewSet1;
     }
 
     public HealthRecord getHealthRecord() {

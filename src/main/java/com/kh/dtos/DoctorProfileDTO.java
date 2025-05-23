@@ -38,12 +38,6 @@ public class DoctorProfileDTO {
                 .collect(Collectors.toSet())
         );
     }
-//
-//    public DoctorProfileDTO(UserDTO userDTO, Set<DoctorLicenseDTO> doctorLicenseDTOSet, Set<HospitalDTO> hospitalDTOSet) {
-//        this.doctorDTO = userDTO;
-//        this.doctorLicenseDTOSet = doctorLicenseDTOSet;
-//        this.hospitalDTOSet = hospitalDTOSet;
-//    }
 
     /**
      * @return the doctorDTO
