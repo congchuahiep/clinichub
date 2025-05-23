@@ -4,6 +4,7 @@
  */
 package com.kh.pojo;
 
+import com.kh.dtos.ReviewDTO;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -20,6 +21,9 @@ import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import java.io.Serializable;
 import java.util.Date;
 
@@ -66,10 +70,12 @@ public class Review implements Serializable {
 
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
+    @CreationTimestamp
     private Date createdAt;
 
     @Column(name = "updated_at")
     @Temporal(TemporalType.TIMESTAMP)
+    @UpdateTimestamp
     private Date updatedAt;
 
     @JoinColumn(name = "doctor_id", referencedColumnName = "id")
@@ -81,6 +87,13 @@ public class Review implements Serializable {
     private User patientId;
 
     public Review() {
+    }
+
+    public Review(ReviewDTO reviewDTO, User doctor, User patient) {
+        this.rating = reviewDTO.getRating();
+        this.comment = reviewDTO.getComment();
+        this.doctorId = doctor;
+        this.patientId = patient;
     }
 
     public Review(Long id) {
