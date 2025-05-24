@@ -76,7 +76,7 @@ public class ApiUserController {
     }
 
     /**
-     * Endpoint: {@code GET /api/patient-register/}
+     * Endpoint: {@code POST /api/patient-register/}
      *
      * <p>
      * Dùng để đăng ký người dùng loại bệnh nhân. Các trường cần đăng ký được
@@ -129,7 +129,7 @@ public class ApiUserController {
     }
 
     /**
-     * Endpoint: {@code GET /api/doctor-register/}
+     * Endpoint: {@code POST /api/doctor-register/}
      *
      * <p>
      * Dùng để đăng ký người dùng loại bệnh nhân. Các trường cần đăng ký được định

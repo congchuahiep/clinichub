@@ -9,7 +9,8 @@ export const endpoints = {
     'login': '/login',
     'current-user': '/secure/profile',
     'hospitals': '/hospitals',
-    'specialties': '/specialties'
+    'specialties': '/specialties',
+    'doctors': '/doctors'
 }
 
 export const authApis = () => {

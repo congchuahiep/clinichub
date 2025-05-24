@@ -46,17 +46,18 @@ public class UserRepositoryImpl extends AbstractRepository<User, Long> implement
     @Override
     public User save(User user) throws UsernameAlreadyExistsException, EmailAlreadyExistsException, IllegalStateException {
         try {
-            super.save(user);
+            return super.save(user);
         } catch (ConstraintViolationException ex) {
             String message = ex.getMessage();
-            if (message.contains("username")) {
+            if (message.contains("users.username")) {
                 throw new UsernameAlreadyExistsException("Username này đã có người khác sử dụng!");
-            } else if (message.contains("email")) {
+            } else if (message.contains("users.email")) {
                 throw new EmailAlreadyExistsException("Email này đã có người khác sử dụng!");
+            } else if (message.contains("license_number")) {
+                throw new EmailAlreadyExistsException("Giấy phép hành nghề không hợp lệ, trong hệ thống đã có người sử dụng!");
             }
+            throw new RuntimeException(ex.getMessage());
         }
-
-        return user;
     }
 
     @Override
@@ -72,17 +73,15 @@ public class UserRepositoryImpl extends AbstractRepository<User, Long> implement
         doctorLicenseFetch.fetch("specialtyId", JoinType.LEFT);
 
 
-        List<Predicate> predicates = new ArrayList<>();
+        // Xử lý vị ngữ (các điều kiện truy vấn)
+        List<Predicate> predicates = createDoctorPredicates(builder, root, params);
+
+        // Xử lý phân trang
         int page = 1;
-        int pageSize = 10;
-
-        if (params != null && !params.isEmpty()) {
-            // Xử lý vị ngữ (các điều kiện truy vấn)
-            predicates = createDoctorPredicates(builder, root, params);
-
-            // Xử lý phân trang
+        int pageSize = 5;
+        if (!params.isEmpty() && params.containsKey("page")) {
             page = Integer.parseInt(params.getOrDefault("page", "1"));
-            pageSize = Integer.parseInt(params.getOrDefault("pageSize", "10"));
+            pageSize = Integer.parseInt(params.getOrDefault("pageSize", "5"));
         }
 
         // Đổi các vị ngữ thành điều kiện truy vấn)
