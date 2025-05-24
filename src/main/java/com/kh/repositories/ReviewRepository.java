@@ -14,4 +14,6 @@ public interface ReviewRepository extends GenericRepository<Review, Long> {
     PaginatedResult<Review> doctorReviewList(Long doctorId, Map<String, String> params);
 
     Long countDoctorReview(Long doctorId);
+
+    Double calculateAverageRatingByDoctor(Long doctorId);
 }

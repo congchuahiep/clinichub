@@ -5,7 +5,9 @@
 package com.kh.repositories.impl;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
+import com.kh.dtos.DoctorWithRating;
 import com.kh.enums.UserRole;
 import com.kh.pojo.DoctorLicense;
 import com.kh.pojo.Hospital;
@@ -61,20 +63,24 @@ public class UserRepositoryImpl extends AbstractRepository<User, Long> implement
     }
 
     @Override
-    public PaginatedResult<User> doctorList(Map<String, String> params) {
+    public PaginatedResult<DoctorWithRating> doctorList(Map<String, String> params) {
         Session session = getCurrentSession();
         CriteriaBuilder builder = session.getCriteriaBuilder();
-        CriteriaQuery<User> criteria = builder.createQuery(User.class);
-        Root<User> root = criteria.from(User.class);
 
-        // Join bảng để lọc cho nó tiện
+        // Query để lấy danh sách bác sĩ
+        CriteriaQuery<User> doctorCriteriaQuery = builder.createQuery(User.class);
+        Root<User> root = doctorCriteriaQuery.from(User.class);
+
+
+        // Join bảng khác để đồng thời trả về dữ liệu bằng hành nghề và các bệnh viện mà bác sĩ làm
         Fetch<User, DoctorLicense> doctorLicenseFetch = root.fetch("doctorLicenseSet", JoinType.LEFT);
         Fetch<User, Hospital> hospitalFetch = root.fetch("hospitalSet", JoinType.LEFT);
         doctorLicenseFetch.fetch("specialtyId", JoinType.LEFT);
 
-
         // Xử lý vị ngữ (các điều kiện truy vấn)
         List<Predicate> predicates = createDoctorPredicates(builder, root, params);
+        doctorCriteriaQuery.where(predicates.toArray(new Predicate[0])); // Đổi các vị ngữ thành điều kiện truy vấn)
+        doctorCriteriaQuery.distinct(true); // Distinct để tránh duplicate records
 
         // Xử lý phân trang
         int page = 1;
@@ -84,23 +90,29 @@ public class UserRepositoryImpl extends AbstractRepository<User, Long> implement
             pageSize = Integer.parseInt(params.getOrDefault("pageSize", "5"));
         }
 
-        // Đổi các vị ngữ thành điều kiện truy vấn)
-        criteria.where(predicates.toArray(new Predicate[0]));
+        List<User> doctors = session.createQuery(doctorCriteriaQuery)
+                .setFirstResult((page - 1) * pageSize)
+                .setMaxResults(pageSize)
+                .getResultList();
 
-        // Distinct để tránh duplicate records
-        criteria.distinct(true);
+        // Tính toán average rating cho mỗi bác sĩ
+        List<DoctorWithRating> doctorsWithRating = doctors.stream()
+                .map(doctor -> {
+                    Double avgRating = session.createQuery(
+                                    "SELECT COALESCE(AVG(r.rating), 0.0) FROM Review r WHERE r.doctorId = :doctor",
+                                    Double.class)
+                            .setParameter("doctor", doctor)
+                            .getSingleResult();
+                    return new DoctorWithRating(doctor, avgRating);
+                })
+                .collect(Collectors.toList());
 
-        Query<User> query = session.createQuery(criteria);
-        query.setFirstResult((page - 1) * pageSize);
-        query.setMaxResults(pageSize);
 
-        List<User> result = query.getResultList();
         Long count = this.countDoctor(params);
 
         return new PaginatedResult<>(
-                result, page, pageSize, count
+                doctorsWithRating, page, pageSize, count
         );
-
     }
 
     @Override

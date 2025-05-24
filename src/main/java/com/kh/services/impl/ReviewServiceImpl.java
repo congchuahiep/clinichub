@@ -81,4 +81,9 @@ public class ReviewServiceImpl implements ReviewService {
 
         return new ReviewDTO(review);
     }
+
+    @Override
+    public Double getDoctorAvgRating(Long doctorId) {
+        return 0.0;
+    }
 }

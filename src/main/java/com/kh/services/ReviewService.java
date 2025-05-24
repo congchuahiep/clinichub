@@ -11,5 +11,7 @@ public interface ReviewService {
 
     PaginatedResult<ReviewDTO> getDoctorReviews(Long doctorId, Map<String, String> params);
 
+    Double getDoctorAvgRating(Long doctorId);
+
     ReviewDTO doctorResponse(Long doctorId, Long reviewId, String doctorResponse);
 }

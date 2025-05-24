@@ -51,8 +51,30 @@ public class ReviewRepositoryImpl extends AbstractRepository<Review, Long> imple
         List<Predicate> predicates = new ArrayList<>();
         predicates.add(builder.equal(root.get("doctorId").get("id"), doctorId));
 
-//        return this.executeListQuery(this, session, builder, criteriaQuery, root, params);
-        return null;
+        criteriaQuery.where(predicates.toArray(new Predicate[0]));
+
+        int page = 1;
+        int pageSize = 10;
+
+        if (params != null) {
+            page = Integer.parseInt(params.getOrDefault("page", "1"));
+            pageSize = Integer.parseInt(params.getOrDefault("pageSize", "10"));
+        }
+
+        Query<Review> query = session.createQuery(criteriaQuery);
+        query.setFirstResult((page - 1) * pageSize);
+        query.setMaxResults(pageSize);
+
+        List<Review> reviews = query.getResultList();
+
+        CriteriaQuery<Long> countQuery = builder.createQuery(Long.class);
+        Root<Review> countRoot = countQuery.from(Review.class);
+        countQuery.select(builder.count(countRoot));
+        countQuery.where(builder.equal(countRoot.get("doctorId").get("id"), doctorId));
+
+        Long totalElements = session.createQuery(countQuery).getSingleResult();
+
+        return new PaginatedResult<>(reviews, page, pageSize, totalElements);
     }
 
     @Override
@@ -68,4 +90,19 @@ public class ReviewRepositoryImpl extends AbstractRepository<Review, Long> imple
 
         return query.getSingleResult();
     }
+
+    @Override
+    public Double calculateAverageRatingByDoctor(Long doctorId) {
+        Session session = this.getCurrentSession();
+
+        String hql = "SELECT AVG(r.rating) FROM Review r " +
+                "WHERE r.doctorId.id = :doctorId";
+
+        Query<Double> query = session.createQuery(hql, Double.class);
+        query.setParameter("doctorId", doctorId);
+
+        Double result = query.getSingleResult();
+        return result != null ? result : 0.0;
+    }
+
 }

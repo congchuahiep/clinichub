@@ -4,11 +4,10 @@ import com.kh.dtos.DoctorLicenseDTO;
 import com.kh.dtos.DoctorProfileDTO;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
+import com.kh.dtos.DoctorWithRating;
 import com.kh.utils.PaginatedResult;
 import com.kh.exceptions.FileUploadException;
 import com.kh.pojo.Hospital;
@@ -213,7 +212,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public PaginatedResult<DoctorProfileDTO> getDoctors(Map<String, String> params) {
-        PaginatedResult<User> doctors = this.userRepository.doctorList(params);
+        PaginatedResult<DoctorWithRating> doctors = this.userRepository.doctorList(params);
         return doctors.mapTo(DoctorProfileDTO::new);
     }
 }

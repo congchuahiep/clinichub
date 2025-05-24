@@ -16,6 +16,7 @@ public class DoctorProfileDTO {
     private UserDTO doctorDTO;
     private Set<DoctorLicenseDTO> doctorLicenseDTOSet;
     private Set<HospitalDTO> hospitalDTOSet;
+    private Double avgRating;
 
     public DoctorProfileDTO() {
 
@@ -26,6 +27,16 @@ public class DoctorProfileDTO {
     }
 
     public DoctorProfileDTO(User doctor) {
+        initFromUser(doctor);
+    }
+
+    public DoctorProfileDTO(DoctorWithRating doctorWithRating) {
+        User doctor = doctorWithRating.getDoctor();
+        initFromUser(doctor);
+        this.setAvgRating(doctorWithRating.getAvgRating());
+    }
+
+    private void initFromUser(User doctor) {
         this.setDoctorDTO(new UserDTO(doctor));
         this.setHospitalDTOSet(doctor.getHospitalSet()
                 .stream()
@@ -73,5 +84,13 @@ public class DoctorProfileDTO {
 
     public void setHospitalDTOSet(Set<HospitalDTO> hospitalDTOSet) {
         this.hospitalDTOSet = hospitalDTOSet;
+    }
+
+    public Double getAvgRating() {
+        return avgRating;
+    }
+
+    public void setAvgRating(Double avgRating) {
+        this.avgRating = avgRating;
     }
 }
