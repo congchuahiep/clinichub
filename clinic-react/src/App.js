@@ -12,6 +12,7 @@ import { MyDispatcherContext, MyUserContext } from "./configs/MyContexts";
 import { useReducer } from "react";
 import MyUserReducer from "./reducers/MyUserReducer.js";
 import Doctor from "./components/DoctorSearch.js";
+import 'bootstrap-icons/font/bootstrap-icons.css';
 
 function App() {
 
