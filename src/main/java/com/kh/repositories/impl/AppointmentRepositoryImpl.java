@@ -124,4 +124,16 @@ public class AppointmentRepositoryImpl extends AbstractRepository<Appointment, L
 
         return count > 0;
     }
+
+    @Override
+    public List<Appointment> findAppointmentsBetweenDates(Date from, Date to) {
+        Session session = getCurrentSession();
+
+        String hql = "FROM Appointment a WHERE a.appointmentDate BETWEEN :from AND :to ORDER BY a.appointmentDate ASC";
+        return session.createQuery(hql, Appointment.class)
+                .setParameter("from", from)
+                .setParameter("to", to)
+                .getResultList();
+    }
+
 }
