@@ -11,11 +11,13 @@ import { useEffect, useReducer } from "react";
 import { Container } from "react-bootstrap";
 import cookie from 'react-cookies';
 import DoctorDetail from "./components/DoctorDetail.js";
-import Doctor from "./components/DoctorSearch.js";
+import Doctor from "./components/DoctorList.js";
 import Login from "./components/Login";
 import { authApis, endpoints } from "./configs/APIs.js";
 import { MyDispatcherContext, MyUserContext } from "./configs/MyContexts";
 import MyUserReducer from "./reducers/MyUserReducer.js";
+import DoctorList from "./components/DoctorList.js";
+import AppointmentList from "./components/AppointmentList.js";
 
 
 function App() {
@@ -52,9 +54,9 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/login" element={<Login />} />
               <Route path="/patient-profile/:patientId" element={<PatientProfile />} />
-              <Route path="/doctors" element={<Doctor />} />
+              <Route path="/doctors" element={<DoctorList />} />
               <Route path="/doctors/:id" element={<DoctorDetail />} />
-
+              <Route path="/appointments" element={<AppointmentList />} />
 
             </Routes>
           </Container>

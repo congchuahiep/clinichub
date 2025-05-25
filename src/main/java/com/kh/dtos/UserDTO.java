@@ -3,7 +3,7 @@ package com.kh.dtos;
 import java.util.Date;
 
 import com.kh.enums.UserRole;
-import com.kh.pojo.Hospital;
+import org.hibernate.usertype.UserType;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -74,6 +74,8 @@ public class UserDTO {
 
     private String address; // không bắt buộc
 
+    private UserRole userRole;
+
     @JsonIgnore
     private MultipartFile avatarUpload; // Không bắt buộc
 
@@ -101,6 +103,7 @@ public class UserDTO {
         this.gender = user.getGender();
         this.address = user.getAddress();
         this.avatar = user.getAvatar();
+        this.userRole = user.getRole();
     }
 
     public User toObject(UserRole userRole, String hashedPassword) {
@@ -229,5 +232,13 @@ public class UserDTO {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public UserRole getUserRole() {
+        return userRole;
+    }
+
+    public void setUserRole(UserRole userRole) {
+        this.userRole = userRole;
     }
 }

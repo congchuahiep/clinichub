@@ -32,10 +32,17 @@ public class ApiAppointmentController {
 
     @Autowired
     private ValidationUtils validationUtils;
-    
+
     @Autowired
     private SecurityUtils securityUtils;
-    
+
+    /**
+     * Endpoint: {@code /api/secure/appointments}
+     *
+     * <p>
+     * Cho phép người dùng bệnh nhân tạo một lịch khám mới
+     * </p>
+     */
     @PostMapping("/secure/appointments")
     public ResponseEntity<?> addAppointment(
             @RequestParam("doctorId") Long doctorId,
@@ -74,6 +81,13 @@ public class ApiAppointmentController {
         }
     }
 
+    /**
+     * Endpoint: {@code /api/secure/appointments}
+     *
+     * <p>
+     * Lấy danh sách các lịch khám của bác sĩ và bệnh nhân
+     * </p>
+     */
     @GetMapping("/secure/appointments")
     public ResponseEntity<?> getAppointments(Authentication auth) {
         try {
@@ -96,7 +110,6 @@ public class ApiAppointmentController {
      * <p>
      * Sau khi đã khám xong, bác sĩ tạo ra một bản ghi chẩn đoán bệnh mới
      * </p>
-     *
      */
     @PostMapping("/secure/appointments/{id}/medical-records")
     public ResponseEntity<?> addMedicalRecord(

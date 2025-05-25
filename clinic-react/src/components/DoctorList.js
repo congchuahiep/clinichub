@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import Breadcrumbs from "./layouts/Breadcrumbs";
 import AppointmentModal from "./AppointmentModal";
 
-const DoctorSearch = () => {
+const DoctorList = () => {
 
   const [doctors, setDoctor] = useState([]);
   const [hospitals, setHospitals] = useState([]);
@@ -165,7 +165,7 @@ const DoctorSearch = () => {
 
           <Col md={9}>
 
-            <DoctorList
+            <DoctorListView
               doctors={doctors}
               pageNumber={pageNumber}
               pageSize={pageSize}
@@ -191,7 +191,7 @@ const DoctorSearch = () => {
   )
 }
 
-const DoctorList = ({ doctors, pageNumber, pageSize, totalDoctor, totalPage, onPageChange, loading, handleOpenModal }) => {
+const DoctorListView = ({ doctors, pageNumber, pageSize, totalDoctor, totalPage, onPageChange, loading, handleOpenModal }) => {
 
   const navigate = useNavigate();
 
@@ -231,6 +231,7 @@ const DoctorList = ({ doctors, pageNumber, pageSize, totalDoctor, totalPage, onP
                         width={180}
                         height={180}
                         src={doctor.doctorDTO.avatar || "/no-avatar.jpg"}
+                        style={{ objectFit: "cover" }}
                         roundedCircle
                       />
 
@@ -291,4 +292,4 @@ const DoctorList = ({ doctors, pageNumber, pageSize, totalDoctor, totalPage, onP
   )
 }
 
-export default DoctorSearch;
+export default DoctorList;
