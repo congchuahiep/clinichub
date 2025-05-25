@@ -3,9 +3,9 @@ import { Alert, Badge, Card, Container, Image, Spinner, Stack, Modal, Form, Butt
 import cookie from "react-cookies";
 import { useNavigate, useParams } from "react-router-dom";
 import { authApis, endpoints } from "../configs/APIs";
-import { MyUserContext } from "../configs/MyContexts";
 import { SLOT_LABELS, STATUS_MAP } from "../utils/AppointmentUtils";
 import { useAuth } from "../configs/AuthProvider";
+import { AsyncPaginate } from "react-select-async-paginate";
 
 
 const AppointmentDetail = () => {
@@ -24,6 +24,7 @@ const AppointmentDetail = () => {
     testResults: "",
     notes: ""
   });
+  const [diseases, setDiseases] = useState([]);
 
   const [diagLoading, setDiagLoading] = useState(false);
   const [diagError, setDiagError] = useState("");
@@ -33,10 +34,12 @@ const AppointmentDetail = () => {
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    if (!cookie.load("token")) {
-      navigate("/login");
-      return;
+    const loadDiseases = async () => {
+
     }
+  }, [])
+
+  useEffect(() => {
     const loadDetail = async () => {
       setLoading(true);
       setErrorMessage("");
@@ -178,12 +181,41 @@ const AppointmentDetail = () => {
                   <Modal.Body>
                     <Form onSubmit={handleDiagnosisSubmit}>
                       <Form.Group className="mb-3">
-                        <Form.Label>Mã bệnh (diseaseId)</Form.Label>
-                        <Form.Control
-                          type="number"
-                          required
-                          value={diagnosis.diseaseId}
-                          onChange={e => setDiagnosis(d => ({ ...d, diseaseId: e.target.value }))}
+                        <Form.Label>Chọn loại bệnh</Form.Label>
+                        <AsyncPaginate
+                          value={
+                            diseases.find(d => d.id === Number(diagnosis.diseaseId))
+                              ? {
+                                value: diagnosis.diseaseId,
+                                label: diseases.find(d => d.id === Number(diagnosis.diseaseId))?.name
+                              }
+                              : null
+                          }
+                          loadOptions={
+                            async (search, loadedOptions, { page }) => {
+                              const params = { page: page || 1, pageSize: 20 };
+
+                              if (search) params.kw = search;
+                              const res = await authApis().get(endpoints.diseases, { params });
+                              // Lưu lại danh sách bệnh để dùng cho label
+                              setDiseases(prev => {
+                                const ids = new Set(prev.map(d => d.id));
+                                return [...prev, ...res.data.results.filter(d => !ids.has(d.id))];
+                              });
+
+                              return {
+                                options: res.data.results.map(d => ({
+                                  value: d.id,
+                                  label: d.name
+                                })),
+                                hasMore: res.data.pageNumber < res.data.totalPages,
+                                additional: { page: (res.data.pageNumber || 1) + 1 }
+                              };
+                            }}
+                          onChange={option => setDiagnosis(d => ({ ...d, diseaseId: option?.value || "" }))}
+                          placeholder="Nhập tên bệnh để tìm kiếm..."
+                          isClearable
+                          additional={{ page: 1 }}
                         />
                       </Form.Group>
                       <Form.Group className="mb-3">

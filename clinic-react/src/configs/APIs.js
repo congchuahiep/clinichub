@@ -12,6 +12,7 @@ export const endpoints = {
 
     'hospitals': '/hospitals',
     'specialties': '/specialties',
+    'diseases': '/diseases',
 
     'doctors': '/doctors',
     'doctor-detail': (id) => `/doctors/${id}`,
@@ -20,7 +21,7 @@ export const endpoints = {
 
     'appointments': '/secure/appointments',
     'appointment-detail': (id) => `/secure/appointments/${id}`,
-    'appointment-diagnosis': (id) => `/secure/appointments/${id}medical-records`,
+    'appointment-diagnosis': (id) => `/secure/appointments/${id}/medical-records`,
     
     'review': (id) => `secure/doctors/${id}/reviews`
 }
