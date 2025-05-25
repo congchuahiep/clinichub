@@ -43,26 +43,29 @@ public class SecurityUtils {
      * 
      * @param username - Tên người dùng cần tạo token
      * @return - Chuỗi JWT token đã được serialize
-     * @throws Exception Nếu có lỗi khi tạo token
      */
-    public String generateToken(String username) throws Exception {
-        JWSSigner signer = new MACSigner(SECRET); // Nhập khoá bí mật để làm đối tượng ký
+    public String generateToken(String username) {
+        try {
+            JWSSigner signer = new MACSigner(SECRET); // Nhập khoá bí mật để làm đối tượng ký
 
-        // Tạo thông tin cho token
-        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
-                .subject(username) // Đặt chủ sở hữu của token
-                .expirationTime(new Date(System.currentTimeMillis() + EXPIRATION_MS)) // Đặt thời hạn kết thúc token
-                .issueTime(new Date())
-                .build();
+            // Tạo thông tin cho token
+            JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                    .subject(username) // Đặt chủ sở hữu của token
+                    .expirationTime(new Date(System.currentTimeMillis() + EXPIRATION_MS)) // Đặt thời hạn kết thúc token
+                    .issueTime(new Date())
+                    .build();
 
-        // Tạo đối tượng "được ký JWT" với bộ mã hoá HS256
-        SignedJWT signedJWT = new SignedJWT(
-                new JWSHeader(JWSAlgorithm.HS256),
-                claimsSet);
+            // Tạo đối tượng "được ký JWT" với bộ mã hoá HS256
+            SignedJWT signedJWT = new SignedJWT(
+                    new JWSHeader(JWSAlgorithm.HS256),
+                    claimsSet);
 
-        signedJWT.sign(signer); // Ký JWT bằng khóa bí mật
+            signedJWT.sign(signer); // Ký JWT bằng khóa bí mật
 
-        return signedJWT.serialize(); // Chuyển JWT đã ký thành chuỗi để trả về cho client
+            return signedJWT.serialize(); // Chuyển JWT đã ký thành chuỗi để trả về cho client
+        } catch (Exception e) {
+            throw new SecurityException("Lỗi khi tạo JWT!");
+        }
     }
 
     /**

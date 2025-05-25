@@ -92,7 +92,7 @@ const DoctorSearch = () => {
 
                 <Form.Group className="my-3">
                   <div className="d-flex justify-content-between">
-                    <Form.Label>Bệnh viện</Form.Label>
+                    <Form.Label >Bệnh viện</Form.Label>
                     <i
                       className={`bi bi-x-circle ${selectedHospital ? 'text-danger' : 'text-secondary'}`}
                       disabled={!selectedHospital}
@@ -176,7 +176,7 @@ const DoctorList = ({ doctors, pageNumber, pageSize, totalDoctor, totalPage, onP
         key={number}
         active={number === pageNumber}
         onClick={() => {
-          if (number != pageNumber) return onPageChange(number)
+          if (number !== pageNumber) return onPageChange(number)
         }}
       >
         {number}

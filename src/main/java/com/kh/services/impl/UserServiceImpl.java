@@ -66,7 +66,7 @@ public class UserServiceImpl implements UserService {
     public void authenticate(String username, String password) {
         User user = this.userRepository
                 .findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Người dùng không tồn tại!"));
+                .orElseThrow(() -> new BadCredentialsException("Tài khoản hoặc mật khẩu không chính xác!"));
 
         if (!this.passwordEncoder.matches(password, user.getPassword())) {
             throw new BadCredentialsException("Tài khoản hoặc mật khẩu không chính xác!");
@@ -151,7 +151,7 @@ public class UserServiceImpl implements UserService {
                 .findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Người dùng không tồn tại!"));
 
-        return new UserDTO(user.getUsername(), user.getPassword());
+        return new UserDTO(user);
     }
 
     @Override
