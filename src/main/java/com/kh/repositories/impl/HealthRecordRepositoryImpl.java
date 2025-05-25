@@ -22,4 +22,14 @@ public class HealthRecordRepositoryImpl extends AbstractRepository<HealthRecord,
     public HealthRecordRepositoryImpl() {
         super(HealthRecord.class);
     }
+
+
+    @Override
+    public Optional<HealthRecord> findByPatient(User patient) {
+        Session session = this.getCurrentSession();
+        String hql = "FROM HealthRecord WHERE patient.id = :id";
+        Query<HealthRecord> query = session.createQuery(hql, HealthRecord.class);
+        query.setParameter("id", patient.getId());
+        return Optional.ofNullable(query.getSingleResult());
+    }
 }

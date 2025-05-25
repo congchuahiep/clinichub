@@ -133,6 +133,12 @@ public class ApiAppointmentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(medicalRecordDTO);
     }
 
+
+    /**
+     * Endpoint: {@code /api/secure/appointments/{id}}
+     *
+     * Xem chi tiết lịch khám
+     */
     @GetMapping("/secure/appointments/{appointmentId}")
     public ResponseEntity<?> getAppointmentDetails(
             @PathVariable("appointmentId") Long appointmentId,

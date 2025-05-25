@@ -1,25 +1,15 @@
-import { useEffect, useState, useContext } from "react";
-import { Card, Container, Row, Col, Image, Badge, Spinner, Alert, Stack, Button } from "react-bootstrap";
+import { useEffect, useState } from "react";
+import { Alert, Badge, Button, Card, Col, Container, Image, Row, Spinner, Stack } from "react-bootstrap";
+import cookie from "react-cookies";
 import { useNavigate } from "react-router-dom";
+import { SLOT_LABELS, STATUS_MAP } from "../utils/AppointmentUtils";
 import { authApis, endpoints } from "../configs/APIs";
 import { MyUserContext } from "../configs/MyContexts";
-import cookie from "react-cookies";
+import { useAuth } from "../configs/AuthProvider";
 
-const SLOT_LABELS = [
-  "07:30 - 08:00", "08:00 - 08:30", "08:30 - 09:00", "09:00 - 09:30",
-  "09:30 - 10:00", "10:00 - 10:30", "10:30 - 11:00", "13:00 - 13:30",
-  "13:30 - 14:00", "14:00 - 14:30", "14:30 - 15:00", "15:00 - 15:30",
-  "15:30 - 16:00", "16:00 - 16:30", "16:30 - 17:00", "17:00 - 17:30"
-];
-
-const STATUS_MAP = {
-  scheduled: { label: "Đã đặt lịch", variant: "secondary" },
-  completed: { label: "Hoàn thành", variant: "success" },
-  cancelled: { label: "Đã huỷ lịch", variant: "danger" }
-};
 
 const AppointmentList = () => {
-  const user = useContext(MyUserContext);
+  const { user } = useAuth();
 
   const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
@@ -39,6 +29,7 @@ const AppointmentList = () => {
         console.log(res.data)
         setAppointments(res.data);
       } catch (e) {
+        console.log(e)
         setErr("Không thể tải danh sách lịch khám!");
       } finally {
         setLoading(false);
@@ -161,7 +152,9 @@ const AppointmentList = () => {
                     >
                       Huỷ lịch hẹn
                     </Button>
-                    <Button>
+                    <Button
+                      onClick={() => navigate(`/appointments/${appointment.id}`)}
+                    >
                       Xem chi tiết
                     </Button>
 

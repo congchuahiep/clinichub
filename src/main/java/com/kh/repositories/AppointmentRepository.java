@@ -10,9 +10,9 @@ import java.util.Optional;
 
 public interface AppointmentRepository extends GenericRepository<Appointment, Long> {
 
-    List<Appointment> findByPatientId(Long patientId);
+    List<Appointment> findByPatientId(Long patientId, String status);
 
-    List<Appointment> findByDoctorId(Long doctorId);
+    List<Appointment> findByDoctorId(Long doctorId, String status);
 
     boolean isDoctorTimeSlotTaken(User doctor, Date date, AppointmentSlot slot);
 

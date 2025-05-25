@@ -66,6 +66,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         // Lưu vào database
         Appointment savedAppointment = appointmentRepository.save(appointment);
 
+        // TODO: Gửi EMAIL thông báo xác nhận
+
         // Chuyển entity thành DTO để trả về
         return new AppointmentDTO(savedAppointment);
     }
@@ -82,10 +84,10 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         if (user.getRole() == UserRole.PATIENT) {
             // Nếu là bệnh nhân, lấy danh sách các lịch hẹn của bệnh nhân
-            appointments = appointmentRepository.findByPatientId(user.getId());
+            appointments = appointmentRepository.findByPatientId(user.getId(), null);
         } else if (user.getRole() == UserRole.DOCTOR) {
             // Nếu là bác sĩ, lấy danh sách các lịch hẹn của bác sĩ
-            appointments = appointmentRepository.findByDoctorId(user.getId());
+            appointments = appointmentRepository.findByDoctorId(user.getId(), null);
         } else {
             // Nếu không phải là bệnh nhân hay bác sĩ, trả về lỗi
             throw new IllegalArgumentException("Chỉ bệnh nhân hoặc bác sĩ mới có thể truy cập lịch hẹn.");
@@ -114,10 +116,12 @@ public class AppointmentServiceImpl implements AppointmentService {
         AppointmentDTO dto = new AppointmentDTO(appointment);
 
         MedicalRecord medicalRecord = appointment.getMedicalRecord();
+
         if (medicalRecord != null) {
             MedicalRecordDTO medicalRecordDTO = new MedicalRecordDTO(medicalRecord);
             dto.setMedicalRecord(medicalRecordDTO);
         }
+
         return dto;
     }
 

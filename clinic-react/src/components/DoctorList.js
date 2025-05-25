@@ -5,8 +5,12 @@ import RatingStars from "./RatingStars";
 import { useNavigate } from "react-router-dom";
 import Breadcrumbs from "./layouts/Breadcrumbs";
 import AppointmentModal from "./AppointmentModal";
+import { useAuth } from "../configs/AuthProvider";
 
 const DoctorList = () => {
+
+  const { user } = useAuth();
+  const navigator = useNavigate();
 
   const [doctors, setDoctor] = useState([]);
   const [hospitals, setHospitals] = useState([]);
@@ -82,6 +86,11 @@ const DoctorList = () => {
   }, [selectedHospital, selectedSpecialty])
 
   const handleOpenAppointmentModal = (doctorId, doctorName) => {
+
+    if (!user || user.userRole === "DOCTOR") {
+      navigator("/login");
+    }
+
     setSelectedDoctorId(doctorId);
     setSelectedDoctorName(doctorName);
     setShowModal(true);
@@ -194,6 +203,7 @@ const DoctorList = () => {
 const DoctorListView = ({ doctors, pageNumber, pageSize, totalDoctor, totalPage, onPageChange, loading, handleOpenModal }) => {
 
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const paginationItems = [];
 
@@ -264,12 +274,14 @@ const DoctorListView = ({ doctors, pageNumber, pageSize, totalDoctor, totalPage,
                             Xem chi tiết
                           </Button>
 
-                          <Button onClick={() => handleOpenModal(
-                            doctor.doctorDTO.id,
-                            doctor.doctorDTO.lastName + " " + doctor.doctorDTO.firstName
-                          )}>
-                            Đặt lịch khám
-                          </Button>
+                          {!user || user?.userRole !== "DOCTOR" &&
+                            <Button onClick={() => handleOpenModal(
+                              doctor.doctorDTO.id,
+                              doctor.doctorDTO.lastName + " " + doctor.doctorDTO.firstName
+                            )}>
+                              Đặt lịch khám
+                            </Button>
+                          }
                         </Stack>
                       </div>
                     </Stack>

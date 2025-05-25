@@ -44,23 +44,40 @@ public class AppointmentRepositoryImpl extends AbstractRepository<Appointment, L
 
     // Phương thức lấy danh sách lịch hẹn của bệnh nhân
     @Override
-    public List<Appointment> findByPatientId(Long patientId) {
+    public List<Appointment> findByPatientId(Long patientId, String status) {
         Session session = getCurrentSession();
-        String hql = "FROM Appointment a WHERE a.patientId.id = :patientId";
-        return session.createQuery(hql, Appointment.class)
-                .setParameter("patientId", patientId)
-                .getResultList();
+        String hql = "FROM Appointment a WHERE a.patientId.id = :patientId " +
+                (status != null ? "AND a.status = :status " : "") +
+                "ORDER BY a.appointmentDate ASC, a.timeSlot ASC";
+
+        Query<Appointment> query = session.createQuery(hql, Appointment.class)
+                .setParameter("patientId", patientId);
+
+        if (status != null) {
+            query.setParameter("status", status);
+        }
+
+        return query.getResultList();
     }
 
     // Phương thức lấy danh sách lịch hẹn của bác sĩ
     @Override
-    public List<Appointment> findByDoctorId(Long doctorId) {
+    public List<Appointment> findByDoctorId(Long doctorId, String status) {
         Session session = getCurrentSession();
-        String hql = "FROM Appointment a WHERE a.doctorId.id = :doctorId";
-        return session.createQuery(hql, Appointment.class)
-                .setParameter("doctorId", doctorId)
-                .getResultList();
+        String hql = "FROM Appointment a WHERE a.doctorId.id = :doctorId " +
+                (status != null ? "AND a.status = :status " : "") +
+                "ORDER BY a.appointmentDate ASC, a.timeSlot ASC";
+
+        Query<Appointment> query = session.createQuery(hql, Appointment.class)
+                .setParameter("doctorId", doctorId);
+
+        if (status != null) {
+            query.setParameter("status", status);
+        }
+
+        return query.getResultList();
     }
+
 
     @Override
     public boolean existsAppointmentBetweenDoctorAndPatient(Long doctorId, Long patientId) {

@@ -1,10 +1,7 @@
-import { useContext, useRef, useState } from "react";
-import { Alert, Button, Card, Col, Form, Row, Spinner } from "react-bootstrap";
-import Apis, { authApis, endpoints } from "../configs/APIs";
-import MySpinner from "./layouts/MySpinner";
+import { useState } from "react";
+import { Alert, Button, Card, Form, Spinner } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import cookie from 'react-cookies'
-import { MyDispatcherContext } from "../configs/MyContexts";
+import { useAuth } from "../configs/AuthProvider";
 
 const Login = () => {
   const info = [{
@@ -18,44 +15,30 @@ const Login = () => {
   }];
 
   const [user, setUser] = useState({});
+  const { login } = useAuth();
 
   const [errorMessage, setErrorMessage] = useState();
   const [loading, setLoading] = useState(false);
 
   const nav = useNavigate();
 
-  const dispatch = useContext(MyDispatcherContext);
-
   const setState = (value, field) => {
     setUser({ ...user, [field]: value });
   }
 
-  const login = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setErrorMessage(null);
     try {
-      setLoading(true);
-      let res = await Apis.post(endpoints['login'], {
-        ...user
-      });
-
-      cookie.save('token', res.data.token);
-
-      let u = await authApis().get(endpoints['current-user']);
-      console.info(u.data);
-
-      dispatch({
-        "type": "login",
-        "payload": u.data
-      });
-
+      await login(user.username, user.password);
       nav("/");
     } catch (ex) {
-      console.error(ex.response);
-      setErrorMessage(ex.response.data.error)
+      setErrorMessage(ex?.response?.data?.error || "Đăng nhập thất bại!");
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
     <Card
@@ -65,7 +48,7 @@ const Login = () => {
       <Card.Body>
         <h3 className="text-center mt-4 mb-4">Đăng nhập</h3>
         {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
-        <Form onSubmit={login}>
+        <Form onSubmit={handleLogin}>
           {info.map(i =>
             <Form.Control
               value={user[i.field]}

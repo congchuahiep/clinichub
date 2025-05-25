@@ -50,7 +50,7 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
             throw new RuntimeException("Bác sĩ chỉ được xem hồ sơ của bệnh nhân đã có lịch hẹn");
         }
 
-        HealthRecord healthRecord = healthRecordRepository.findById(appointment.getPatientId())
+        HealthRecord healthRecord = healthRecordRepository.findByPatient(appointment.getPatientId())
                 .orElseThrow(() -> new RuntimeException("Hồ sơ sức khoẻ này không tồn tại!"));
 
         Disease disease = medicalRecordDTO.getDiseaseId() != null

@@ -18,53 +18,38 @@ import { MyDispatcherContext, MyUserContext } from "./configs/MyContexts";
 import MyUserReducer from "./reducers/MyUserReducer.js";
 import DoctorList from "./components/DoctorList.js";
 import AppointmentList from "./components/AppointmentList.js";
+import AppointmentDetail from "./components/AppointmentDetail.js";
+import { AuthProvider } from "./configs/AuthProvider.js";
+import PrivateRoute from "./configs/PrivateRoute.js";
 
 
 function App() {
 
-  const [user, dispatch] = useReducer(MyUserReducer, null);
-
-  // Load lại người dùng khi token vẫn tồn tại
-  useEffect(() => {
-    const loadUser = async () => {
-      const token = cookie.load("token");
-      if (token) {
-        try {
-          const res = await authApis().get(endpoints["current-user"]);
-          dispatch({ type: "login", payload: res.data });
-        } catch (err) {
-          // Token hết hạn hoặc lỗi, xóa token
-          cookie.remove("token");
-          dispatch({ type: "logout" });
-        }
-      }
-    };
-    loadUser();
-  }, []);
-
   return (
-    <MyUserContext.Provider value={user}>
-      <MyDispatcherContext.Provider value={dispatch}>
-        <BrowserRouter>
-          <Header />
 
-          <Container className="p-5">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/patient-profile/:patientId" element={<PatientProfile />} />
-              <Route path="/doctors" element={<DoctorList />} />
-              <Route path="/doctors/:id" element={<DoctorDetail />} />
-              <Route path="/appointments" element={<AppointmentList />} />
+    <BrowserRouter>
+      <AuthProvider>
+        <Header />
 
-            </Routes>
-          </Container>
+        <Container className="p-5">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/patient-profile/:patientId" element={<PatientProfile />} />
+            <Route path="/doctors" element={<DoctorList />} />
+            <Route path="/doctors/:id" element={<DoctorDetail />} />
+            <Route path="/appointments" element={
+              <PrivateRoute>
+                <AppointmentList />
+              </PrivateRoute>
+            } />
+            <Route path="/appointments/:id" element={<AppointmentDetail />} />
+          </Routes>
+        </Container>
 
-          <Footer />
-        </BrowserRouter>
-      </MyDispatcherContext.Provider>
-    </MyUserContext.Provider>
+      </AuthProvider>
+    </BrowserRouter >
   );
 }
 
