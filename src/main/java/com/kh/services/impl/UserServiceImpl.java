@@ -211,6 +211,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public DoctorProfileDTO retrieveDoctor(Long doctorId) {
+        DoctorWithRating doctorWithRating = this.userRepository.findDoctorProfileById(doctorId)
+                .orElseThrow(() -> new RuntimeException("Bác sĩ này không tồn tại"));
+        return new DoctorProfileDTO(doctorWithRating);
+    }
+
+    @Override
     public PaginatedResult<DoctorProfileDTO> getDoctors(Map<String, String> params) {
         PaginatedResult<DoctorWithRating> doctors = this.userRepository.doctorList(params);
         return doctors.mapTo(DoctorProfileDTO::new);

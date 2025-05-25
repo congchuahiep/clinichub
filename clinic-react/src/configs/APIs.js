@@ -1,7 +1,7 @@
 import axios from "axios";
 import cookie from 'react-cookies'
 
-const BASE_URL = 'http://localhost:8080/ClinicHub/api';
+const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 export const endpoints = {
     'patient-register': '/patient-register',
@@ -10,7 +10,12 @@ export const endpoints = {
     'current-user': '/secure/profile',
     'hospitals': '/hospitals',
     'specialties': '/specialties',
-    'doctors': '/doctors'
+    'doctors': '/doctors',
+    'doctor-detail': (id) => `/doctors/${id}`,
+    'doctor-reviews': (id) => `/doctors/${id}/reviews`,
+    'doctor-check-review': (id) => `/secure/doctors/${id}/check-review`,
+    'appointments': '/secure/appointments',
+    'review': (id) => `secure/doctors/${id}/reviews`
 }
 
 export const authApis = () => {

@@ -7,13 +7,11 @@ import com.kh.repositories.AbstractRepository;
 import com.kh.repositories.AppointmentRepository;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 @Transactional
@@ -79,6 +77,24 @@ public class AppointmentRepositoryImpl extends AbstractRepository<Appointment, L
                 .getSingleResult();
         return count != null && count > 0;
     }
+
+    @Override
+    public boolean existsCompletedAppointmentBetweenDoctorAndPatient(Long doctorId, Long patientId) {
+        Session session = getCurrentSession();
+
+        String hql = "SELECT COUNT(a.id) > 0 " +
+                "FROM Appointment a " +
+                "WHERE a.doctorId.id = :doctorId " +
+                "AND a.patientId.id = :patientId " +
+                "AND a.status = 'completed'";
+
+        Query<Boolean> query = session.createQuery(hql, Boolean.class);
+        query.setParameter("doctorId", doctorId);
+        query.setParameter("patientId", patientId);
+
+        return query.getSingleResult();
+    }
+
 
     @Override
     public boolean existsAppointmentMedicalRecord(Long appointmentId) {

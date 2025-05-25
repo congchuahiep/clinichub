@@ -18,5 +18,7 @@ public interface AppointmentRepository extends GenericRepository<Appointment, Lo
 
     boolean existsAppointmentBetweenDoctorAndPatient(Long doctorId, Long patientId);
 
+    boolean existsCompletedAppointmentBetweenDoctorAndPatient(Long doctorId, Long patientId);
+
     boolean existsAppointmentMedicalRecord(Long appointmentId);
 }

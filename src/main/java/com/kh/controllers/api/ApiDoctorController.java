@@ -1,6 +1,7 @@
 package com.kh.controllers.api;
 
 import com.kh.dtos.DoctorProfileDTO;
+import com.kh.enums.ReviewCheckResult;
 import com.kh.utils.PaginatedResult;
 import com.kh.dtos.ReviewDTO;
 import com.kh.enums.UserRole;
@@ -8,13 +9,13 @@ import com.kh.services.ReviewService;
 import com.kh.services.UserService;
 import com.kh.utils.SecurityUtils;
 import com.kh.utils.ValidationUtils;
+import jakarta.persistence.NoResultException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -56,9 +57,16 @@ class ApiDoctorController {
      * </p>
      */
     @GetMapping("/doctors/{id}")
-    public ResponseEntity<?> retrieveDoctor(@PathVariable Long id) {
-        // TODO
-        return null;
+    public ResponseEntity<?> retrieveDoctor(@PathVariable("id") Long id) {
+
+        try {
+            DoctorProfileDTO doctorProfileDTO = this.userService.retrieveDoctor(id);
+
+            return ResponseEntity.ok(doctorProfileDTO);
+        } catch (NoResultException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy bác sĩ");
+        }
+
     }
 
     /**
@@ -103,5 +111,25 @@ class ApiDoctorController {
         PaginatedResult<ReviewDTO> reviews = reviewService.getDoctorReviews(doctorId, params);
 
         return ResponseEntity.ok(reviews);
+    }
+
+    /**
+     * Endpoint: {@code GET /api/doctors/{id}/check-review}
+     *
+     * <p>
+     * Bệnh nhân kiểm tra xem đã đánh giá bác sĩ này hay chưa
+     * </p>
+     */
+    @GetMapping("/secure/doctors/{id}/check-review")
+    public ResponseEntity<?> checkPatientReview(
+            @PathVariable("id") Long id,
+            Authentication auth
+    ) {
+        securityUtils.requireRole(auth, UserRole.PATIENT);
+        Long patientId = securityUtils.getCurrentUserId(auth);
+
+        ReviewCheckResult result = reviewService.checkPatientReview(id, patientId);
+
+        return ResponseEntity.ok(result);
     }
 }

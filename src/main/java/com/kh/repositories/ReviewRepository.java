@@ -10,7 +10,7 @@ import java.util.Optional;
 public interface ReviewRepository extends GenericRepository<Review, Long> {
 
     boolean existsReviewByDoctorAndPatient(Long doctorId, Long patientId);
-
+    
     PaginatedResult<Review> doctorReviewList(Long doctorId, Map<String, String> params);
 
     Long countDoctorReview(Long doctorId);

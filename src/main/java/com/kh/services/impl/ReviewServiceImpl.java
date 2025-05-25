@@ -1,5 +1,6 @@
 package com.kh.services.impl;
 
+import com.kh.enums.ReviewCheckResult;
 import com.kh.utils.PaginatedResult;
 import com.kh.dtos.ReviewDTO;
 import com.kh.dtos.UserDTO;
@@ -62,6 +63,22 @@ public class ReviewServiceImpl implements ReviewService {
         PaginatedResult<Review> reviews = reviewRepository.doctorReviewList(doctorId, params);
         return reviews.mapTo(ReviewDTO::new);
     }
+
+    @Override
+    public ReviewCheckResult checkPatientReview(Long doctorId, Long patientId) {
+        // Kiểm tra xem bệnh nhân đã đánh giá bác sĩ này chưa
+        if (reviewRepository.existsReviewByDoctorAndPatient(doctorId, patientId)) {
+            return ReviewCheckResult.ALREADY_REVIEWED;
+        }
+
+        // Kiểm tra xem bệnh nhân đã có lịch hẹn hoàn thành với bác sĩ chưa
+        if (!appointmentRepository.existsCompletedAppointmentBetweenDoctorAndPatient(doctorId, patientId)) {
+            return ReviewCheckResult.NO_COMPLETED_APPOINTMENT;
+        }
+
+        return ReviewCheckResult.ALLOWED;
+    }
+
 
     @Override
     public ReviewDTO doctorResponse(Long doctorId, Long reviewId, String doctorResponse) {

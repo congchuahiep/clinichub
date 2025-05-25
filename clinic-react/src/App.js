@@ -1,20 +1,21 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import Header from "./components/layouts/Header";
-import Footer from "./components/layouts/Footer";
 import Home from "./components/Home";
-import Register from "./components/Register";
+import Footer from "./components/layouts/Footer";
+import Header from "./components/layouts/Header";
 import PatientProfile from './components/PatientProfile.js';
+import Register from "./components/Register";
 
-import 'bootstrap/dist/css/bootstrap.min.css';
-import { Container } from "react-bootstrap";
-import Login from "./components/Login";
-import { MyDispatcherContext, MyUserContext } from "./configs/MyContexts";
-import { useEffect, useReducer } from "react";
-import MyUserReducer from "./reducers/MyUserReducer.js";
-import Doctor from "./components/DoctorSearch.js";
 import 'bootstrap-icons/font/bootstrap-icons.css';
-import cookie from 'react-cookies'
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { useEffect, useReducer } from "react";
+import { Container } from "react-bootstrap";
+import cookie from 'react-cookies';
+import DoctorDetail from "./components/DoctorDetail.js";
+import Doctor from "./components/DoctorSearch.js";
+import Login from "./components/Login";
 import { authApis, endpoints } from "./configs/APIs.js";
+import { MyDispatcherContext, MyUserContext } from "./configs/MyContexts";
+import MyUserReducer from "./reducers/MyUserReducer.js";
 
 
 function App() {
@@ -52,6 +53,7 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/patient-profile/:patientId" element={<PatientProfile />} />
               <Route path="/doctors" element={<Doctor />} />
+              <Route path="/doctors/:id" element={<DoctorDetail />} />
 
 
             </Routes>

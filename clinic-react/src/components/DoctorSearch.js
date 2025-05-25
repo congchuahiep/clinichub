@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
-import { Badge, Button, Card, Col, Container, Form, Image, Pagination, Row, Spinner, Stack } from "react-bootstrap";
+import { Alert, Badge, Button, Card, Col, Container, Form, Image, Pagination, Row, Spinner, Stack } from "react-bootstrap";
 import APIs, { endpoints } from "../configs/APIs";
 import RatingStars from "./RatingStars";
+import { useNavigate } from "react-router-dom";
+import Breadcrumbs from "./layouts/Breadcrumbs";
+import AppointmentModal from "./AppointmentModal";
 
 const DoctorSearch = () => {
 
@@ -10,6 +13,7 @@ const DoctorSearch = () => {
   const [specialties, setSpecialties] = useState([]);
 
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState();
 
   const [pageNumber, setPageNumber] = useState();
   const [pageSize, setPageSize] = useState();
@@ -18,6 +22,10 @@ const DoctorSearch = () => {
 
   const [selectedHospital, setSelectedHospital] = useState(null);
   const [selectedSpecialty, setSelectedSpecialty] = useState(null);
+
+  const [showModal, setShowModal] = useState(false);
+  const [selectedDoctorId, setSelectedDoctorId] = useState(null);
+  const [selectedDoctorName, setSelectedDoctorName] = useState(null);
 
   const loadDoctor = async (page, hospitalId, specialtyId) => {
     setLoading(true);
@@ -33,7 +41,7 @@ const DoctorSearch = () => {
       })
       .catch(ex => {
         console.log(ex);
-        // TODO: Hiển thị lỗi
+        setErrorMessage(ex.response.data)
       })
       .finally(() => {
         setLoading(false);
@@ -47,10 +55,7 @@ const DoctorSearch = () => {
       })
       .catch(ex => {
         console.log(ex);
-        // TODO: Hiển thị lỗi
-      })
-      .finally(() => {
-        // TODO: Set cục loading
+        setErrorMessage("[" + ex.response.status + "] Không thể load được bệnh viện");
       })
   }
 
@@ -62,10 +67,7 @@ const DoctorSearch = () => {
       })
       .catch(ex => {
         console.log(ex);
-        // TODO: Hiển thị lỗi
-      })
-      .finally(() => {
-        // TODO: Set cục loading
+        setErrorMessage("[" + ex.response.status + "] Không thể load được các chuyên khoa");
       })
   }
 
@@ -79,9 +81,24 @@ const DoctorSearch = () => {
     loadDoctor(1, selectedHospital, selectedSpecialty);
   }, [selectedHospital, selectedSpecialty])
 
+  const handleOpenAppointmentModal = (doctorId, doctorName) => {
+    setSelectedDoctorId(doctorId);
+    setSelectedDoctorName(doctorName);
+    setShowModal(true);
+  };
+
   return (
     <>
       <Container>
+        <Breadcrumbs />
+        <Row>
+          {
+            errorMessage &&
+            <Alert variant="danger">
+              Lỗi: {errorMessage}
+            </Alert>
+          }
+        </Row>
         <Row>
           <Col md={3}>
             <Card className="sticky-top" style={{ top: 24 }} bg={"light"}>
@@ -156,17 +173,27 @@ const DoctorSearch = () => {
               totalPage={totalPage}
               onPageChange={(page) => loadDoctor(page, selectedHospital, selectedSpecialty)}
               loading={loading}
+              handleOpenModal={handleOpenAppointmentModal}
             />
 
 
           </Col>
         </Row>
       </Container>
+
+      <AppointmentModal
+        show={showModal}
+        onHide={() => setShowModal(false)}
+        doctorId={selectedDoctorId}
+        doctorName={selectedDoctorName}
+      />
     </>
   )
 }
 
-const DoctorList = ({ doctors, pageNumber, pageSize, totalDoctor, totalPage, onPageChange, loading }) => {
+const DoctorList = ({ doctors, pageNumber, pageSize, totalDoctor, totalPage, onPageChange, loading, handleOpenModal }) => {
+
+  const navigate = useNavigate();
 
   const paginationItems = [];
 
@@ -199,16 +226,15 @@ const DoctorList = ({ doctors, pageNumber, pageSize, totalDoctor, totalPage, onP
               <Card key={doctor.doctorDTO.id} >
                 <Container fluid>
                   <Card.Body>
-                    <Row className="align-items-center">
-                      <Col style={{ flex: "0 0" }}>
-                        <Image
-                          width={180}
-                          height={180}
-                          src={doctor.doctorDTO.avatar || "/no-avatar.jpg"}
-                          roundedCircle
-                        />
-                      </Col>
-                      <Col className="flex-grow-1">
+                    <Stack direction="horizontal" style={{ gap: "2rem" }}>
+                      <Image
+                        width={180}
+                        height={180}
+                        src={doctor.doctorDTO.avatar || "/no-avatar.jpg"}
+                        roundedCircle
+                      />
+
+                      <div>
                         <Card.Title>
                           BS {doctor.doctorDTO.lastName} {doctor.doctorDTO.firstName}
                         </Card.Title>
@@ -223,13 +249,29 @@ const DoctorList = ({ doctors, pageNumber, pageSize, totalDoctor, totalPage, onP
                         <Card.Text>
                           Bệnh viện: {doctor.hospitalDTOSet.map((hospital) => hospital.name).join(', ')}
                         </Card.Text>
-                      </Col>
-                      <Col>
+                      </div>
+
+                      <div className="ms-auto" style={{ width: 132 }}>
                         <Card.Text>
                           <RatingStars avgRating={doctor.avgRating} />
                         </Card.Text>
-                      </Col>
-                    </Row>
+                        <Stack gap={2}>
+                          <Button
+                            variant="outline-success"
+                            onClick={() => navigate(`/doctors/${doctor.doctorDTO.id}`)}
+                          >
+                            Xem chi tiết
+                          </Button>
+
+                          <Button onClick={() => handleOpenModal(
+                            doctor.doctorDTO.id,
+                            doctor.doctorDTO.lastName + " " + doctor.doctorDTO.firstName
+                          )}>
+                            Đặt lịch khám
+                          </Button>
+                        </Stack>
+                      </div>
+                    </Stack>
                   </Card.Body>
                 </Container>
               </Card>

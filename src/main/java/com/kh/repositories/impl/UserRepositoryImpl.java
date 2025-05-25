@@ -122,14 +122,37 @@ public class UserRepositoryImpl extends AbstractRepository<User, Long> implement
                 "FROM User WHERE id = :id AND role = :role AND isActive = true",
                 User.class
         );
+
         query.setParameter("id", id);
         query.setParameter("role", UserRole.DOCTOR);
 
-        try {
-            return Optional.ofNullable(query.getSingleResult());
-        } catch (NoResultException e) {
-            return Optional.empty();
-        }
+        return Optional.ofNullable(query.getSingleResult());
+    }
+
+    @Override
+    public Optional<DoctorWithRating> findDoctorProfileById(Long id) {
+        Session session = getCurrentSession();
+        String hql = "SELECT u FROM User u" +
+                " LEFT JOIN FETCH u.doctorLicenseSet dl" +
+                " LEFT JOIN FETCH u.hospitalSet" +
+                " LEFT JOIN FETCH dl.specialtyId" +
+                " WHERE u.id = :id AND u.role = :role AND u.isActive = true";
+
+        Query<User> query = session.createQuery(hql, User.class);
+
+        query.setParameter("id", id);
+        query.setParameter("role", UserRole.DOCTOR);
+
+        User doctor = query.getSingleResult();
+
+        Double avgRating = session.createQuery(
+                        "SELECT COALESCE(AVG(r.rating), 0.0) FROM Review r WHERE r.doctorId = :doctor",
+                        Double.class)
+                .setParameter("doctor", doctor)
+                .getSingleResult();
+
+        return Optional.of(new DoctorWithRating(doctor, avgRating));
+
     }
 
     /**

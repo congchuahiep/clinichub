@@ -23,6 +23,8 @@ public interface UserRepository extends GenericRepository<User, Long> {
 
     Optional<User> findDoctorById(Long id);
 
+    Optional<DoctorWithRating> findDoctorProfileById(Long id);
+
     Optional<User> findByUsername(String username);
 
     Optional<User> findDoctorByUsername(String username);

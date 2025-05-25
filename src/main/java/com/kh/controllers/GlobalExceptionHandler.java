@@ -68,8 +68,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(Collections.singletonMap("error", ex.getMessage()));
     }
 
-
-
     /**
      * Những lỗi khác xảy ra do hệ thống
      */
