@@ -31,7 +31,8 @@ public class DispatcherServerletInit extends AbstractAnnotationConfigDispatcherS
                 ThymeleafConfig.class, // Cấu hình thymeleaf
                 HibernateConfigs.class, // Cấu hình Hibernate
                 SecurityConfigs.class, // Cấu hình Spring boot Security
-                UtilsConfig.class // Cấu hình các bean tiện ích
+                UtilsConfig.class, // Cấu hình các bean tiện ích
+                MailConfig.class
         };
     }
 

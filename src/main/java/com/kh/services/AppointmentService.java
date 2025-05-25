@@ -13,4 +13,5 @@ public interface AppointmentService {
 
     AppointmentDTO getAppointmentDetails(Long appointmentId, String username) throws AccessDeniedException, NoSuchElementException;
 
+
 }

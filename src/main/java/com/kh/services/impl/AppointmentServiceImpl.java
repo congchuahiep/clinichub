@@ -1,6 +1,7 @@
 package com.kh.services.impl;
 
 import com.kh.dtos.AppointmentDTO;
+import com.kh.dtos.EmailDTO;
 import com.kh.dtos.MedicalRecordDTO;
 import com.kh.enums.AppointmentSlot;
 import com.kh.enums.UserRole;
@@ -17,6 +18,8 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
+import com.kh.services.EmailService;
+import com.kh.utils.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -31,6 +34,9 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Autowired
     private MedicalRecordRepository medicalRecordRepository;
+
+    @Autowired
+    private EmailService emailService;
 
 
     @Override
@@ -66,8 +72,70 @@ public class AppointmentServiceImpl implements AppointmentService {
         // Lưu vào database
         Appointment savedAppointment = appointmentRepository.save(appointment);
 
+        // TODO: Gửi email
+        sendAppointmentEmailToPatient(patient, doctor, savedAppointment);
+        sendAppointmentEmailToDoctor(patient, doctor, savedAppointment);
+
+
         // Chuyển entity thành DTO để trả về
         return new AppointmentDTO(savedAppointment);
+    }
+
+    private void sendAppointmentEmailToPatient(User patient, User doctor, Appointment appointment) {
+        EmailDTO email = new EmailDTO();
+        String formattedDate = DateUtils.formatVietnameseDate(appointment.getAppointmentDate());
+
+        email.setToEmail(patient.getEmail());
+        email.setSubject("Xác nhận lịch hẹn khám với bác sĩ " + doctor.getFirstName() + " " + doctor.getLastName());
+
+        String body = String.format(
+                "Kính chào %s %s,\n\n" +
+                        "Bạn đã đặt lịch hẹn thành công với bác sĩ %s %s.\n\n" +
+                        "🗓 Ngày khám: %s\n" +
+                        "⏰ Ca khám: %s\n" +
+                        "📝 Ghi chú: %s\n\n" +
+                        "Vui lòng đến sớm 15 phút để làm thủ tục trước khi khám.\n\n" +
+                        "Trân trọng,\nPhòng khám ABC",
+                patient.getLastName(),
+                patient.getFirstName(),
+                doctor.getLastName(),
+                doctor.getFirstName(),
+                formattedDate,
+                appointment.getTimeSlot().getSlotNumber(),
+                appointment.getNote() == null || appointment.getNote().isEmpty() ? "Không có" : appointment.getNote()
+        );
+
+        email.setBody(body);
+        emailService.sendEmail(email);
+    }
+
+    private void sendAppointmentEmailToDoctor(User patient, User doctor, Appointment appointment) {
+        EmailDTO email = new EmailDTO();
+        String formattedDate = DateUtils.formatVietnameseDate(appointment.getAppointmentDate());
+
+        email.setToEmail(doctor.getEmail());
+        email.setSubject("Lịch hẹn mới từ bệnh nhân " + patient.getFirstName() + " " + patient.getLastName());
+
+        String body = String.format(
+                "Kính gửi Bác sĩ %s %s,\n\n" +
+                        "Một bệnh nhân mới đã đặt lịch hẹn khám với bác sĩ.\n\n" +
+                        "👤 Tên bệnh nhân: %s %s\n" +
+                        "🗓 Ngày khám: %s\n" +
+                        "⏰ Ca khám: %s\n" +
+                        "📝 Ghi chú: %s\n\n" +
+                        "Vui lòng kiểm tra lịch làm việc của mình để chuẩn bị trước buổi khám.\n\n" +
+                        "Trân trọng,\nHệ thống quản lý lịch hẹn",
+                doctor.getLastName(),
+                doctor.getFirstName(),
+                patient.getLastName(),
+                patient.getFirstName(),
+                formattedDate,
+                appointment.getTimeSlot().getSlotNumber(),
+                appointment.getNote() == null || appointment.getNote().isEmpty() ? "Không có" : appointment.getNote()
+        );
+
+        email.setBody(body);
+        emailService.sendEmail(email);
     }
 
 

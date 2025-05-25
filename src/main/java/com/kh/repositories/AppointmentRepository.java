@@ -3,6 +3,8 @@ package com.kh.repositories;
 import com.kh.enums.AppointmentSlot;
 import com.kh.pojo.Appointment;
 import com.kh.pojo.User;
+import jakarta.data.repository.Param;
+import jakarta.data.repository.Query;
 
 import java.util.Date;
 import java.util.List;
@@ -19,4 +21,7 @@ public interface AppointmentRepository extends GenericRepository<Appointment, Lo
     boolean existsAppointmentBetweenDoctorAndPatient(Long doctorId, Long patientId);
 
     boolean existsAppointmentMedicalRecord(Long appointmentId);
+
+    List<Appointment> findAppointmentsBetweenDates(Date from, Date to);
+
 }
