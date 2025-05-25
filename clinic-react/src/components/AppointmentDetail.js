@@ -6,6 +6,7 @@ import { authApis, endpoints } from "../configs/APIs";
 import { SLOT_LABELS, STATUS_MAP } from "../utils/AppointmentUtils";
 import { useAuth } from "../configs/AuthProvider";
 import { AsyncPaginate } from "react-select-async-paginate";
+import Breadcrumbs from "./layouts/Breadcrumbs";
 
 
 const AppointmentDetail = () => {
@@ -16,6 +17,7 @@ const AppointmentDetail = () => {
   const navigate = useNavigate();
 
   const [appointment, setAppointment] = useState(null);
+
   const [showDiagnosisModal, setShowDiagnosisModal] = useState(false);
   const [diagnosis, setDiagnosis] = useState({
     diseaseId: "",
@@ -98,6 +100,8 @@ const AppointmentDetail = () => {
   return (
     <Container className="py-4" style={{ maxWidth: 700 }}>
       <h3 className="mb-4">Chi tiết lịch khám</h3>
+      <Breadcrumbs customTitle={"Lịch khám ngày: " + appointment.appointmentDate} />
+
       <Card>
         <Card.Header>
           <Stack direction="horizontal" gap={4}>

@@ -6,7 +6,7 @@ const breadcrumbNameMap = {
   "register": "Đăng ký",
   "login": "Đăng nhập",
   "doctors": "Tìm kiếm bác sĩ",
-  // Thêm các mapping khác
+  "appointments": "Lịch khám bệnh"
 };
 
 const Breadcrumbs = ({ customTitle }) => {

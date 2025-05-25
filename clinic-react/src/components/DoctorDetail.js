@@ -6,9 +6,12 @@ import RatingStars from "./RatingStars";
 import Breadcrumbs from "./layouts/Breadcrumbs";
 import AppointmentModal from "./AppointmentModal";
 import ReviewForm from "./ReviewForm";
+import { useAuth } from "../configs/AuthProvider";
 
 const DoctorDetail = () => {
   const { id } = useParams();
+
+  const { user } = useAuth();
 
   const [doctor, setDoctor] = useState(null);
   const [reviews, setReviews] = useState([]);
@@ -124,9 +127,11 @@ const DoctorDetail = () => {
                   {doctorDTO.gender === "male" ? "Nam" : "Nữ"}
                 </p>
               </Card.Text>
-              <Button variant="primary" className="w-100" onClick={() => setShowModal(true)}>
+              {!user || user.userRole !== "DOCTOR" &&
+                <Button variant="primary" className="w-100" onClick={() => setShowModal(true)}>
                 Đặt lịch khám
               </Button>
+              }
             </Card.Body>
           </Card>
         </Col>

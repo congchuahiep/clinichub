@@ -71,7 +71,7 @@ public class AppointmentRepositoryImpl extends AbstractRepository<Appointment, L
         Query<Appointment> query = session.createQuery(hql, Appointment.class)
                 .setParameter("doctorId", doctorId);
 
-        if (status != null) {
+        if (status != null && !status.trim().isEmpty()) {
             query.setParameter("status", status);
         }
 

@@ -89,12 +89,15 @@ public class ApiAppointmentController {
      * </p>
      */
     @GetMapping("/secure/appointments")
-    public ResponseEntity<?> getAppointments(Authentication auth) {
+    public ResponseEntity<?> getAppointments(
+            Authentication auth,
+            @RequestParam(value = "status", required = false) String status
+    ) {
         try {
             // Kiểm tra quyền của người dùng (bác sĩ hoặc bệnh nhân)
 
             // Lấy danh sách các lịch khám (cả bác sĩ và bệnh nhân)
-            List<AppointmentDTO> appointments = appointmentService.getAppointments(auth.getName());
+            List<AppointmentDTO> appointments = appointmentService.getAppointments(auth.getName(), status);
 
             return ResponseEntity.ok(appointments);
 

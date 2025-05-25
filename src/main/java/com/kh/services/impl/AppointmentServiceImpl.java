@@ -74,7 +74,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
 
     @Override
-    public List<AppointmentDTO> getAppointments(String username) {
+    public List<AppointmentDTO> getAppointments(String username, String status) {
         // Lấy thông tin người dùng
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Người dùng không tồn tại!"));
@@ -84,10 +84,10 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         if (user.getRole() == UserRole.PATIENT) {
             // Nếu là bệnh nhân, lấy danh sách các lịch hẹn của bệnh nhân
-            appointments = appointmentRepository.findByPatientId(user.getId(), null);
+            appointments = appointmentRepository.findByPatientId(user.getId(), status);
         } else if (user.getRole() == UserRole.DOCTOR) {
             // Nếu là bác sĩ, lấy danh sách các lịch hẹn của bác sĩ
-            appointments = appointmentRepository.findByDoctorId(user.getId(), null);
+            appointments = appointmentRepository.findByDoctorId(user.getId(), status);
         } else {
             // Nếu không phải là bệnh nhân hay bác sĩ, trả về lỗi
             throw new IllegalArgumentException("Chỉ bệnh nhân hoặc bác sĩ mới có thể truy cập lịch hẹn.");
