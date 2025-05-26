@@ -44,7 +44,6 @@ const AppointmentDetail = () => {
 
   useEffect(() => {
     const loadDiseases = async () => {
-
     }
   }, [])
 
@@ -57,10 +56,13 @@ const AppointmentDetail = () => {
         const appointmentData = appointmentResponse.data
         setAppointment(appointmentResponse.data);
 
-        const healthProfileResponse = await authApis().get(endpoints["doctor-health-profile"](appointmentData.patient.id));
-        console.log(healthProfileResponse);
-        setHealthProfileForm(healthProfileResponse.data);
+        if (user.userRole == "DOCTOR") {
+          const healthProfileResponse = await authApis().get(endpoints["doctor-health-profile"](appointmentData.patient.id));
+          console.log(healthProfileResponse);
+          setHealthProfileForm(healthProfileResponse.data);
+        }
       } catch (e) {
+        console.log(e);
         setErrorMessage("Không thể tải chi tiết lịch khám!");
       } finally {
         setLoading(false);
@@ -114,7 +116,7 @@ const AppointmentDetail = () => {
   if (loading) {
     return (
       <Container className="py-5 text-center">
-        <Spinner animation="border" variant="primary" />
+        <Spinner variant="primary" />
       </Container>
     );
   }
@@ -172,6 +174,14 @@ const AppointmentDetail = () => {
                   <div>
                     <i className="bi bi-telephone"></i> {doctor.phone}
                   </div>
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    className="mt-2"
+                    onClick={() => navigate(`/doctors/${doctor.id}`)}
+                  >
+                    Xem trang bác sĩ
+                  </Button>
                 </div>
               </Stack>
             </Alert>

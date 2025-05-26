@@ -179,9 +179,9 @@ const AppointmentModal = ({ show, onHide, doctorName, doctorId }) => {
           </Form>
         </Modal.Body>
       </Modal>
-      <ToastContainer position="top-end" className="p-3">
+      <ToastContainer position="bottom-end" className="p-3" style={{ position: "fixed" }}>
         <Toast
-          bg="success"
+          bg=""
           onClose={() => setShowToast(false)}
           show={showToast}
           delay={3000}
@@ -190,8 +190,8 @@ const AppointmentModal = ({ show, onHide, doctorName, doctorId }) => {
           <Toast.Header>
             <strong className="me-auto">Thông báo</strong>
           </Toast.Header>
-          <Toast.Body className="text-white">
-            Đặt lịch thành công!
+          <Toast.Body>
+            ✅ Đặt lịch thành công!
           </Toast.Body>
         </Toast>
       </ToastContainer>

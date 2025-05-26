@@ -17,7 +17,6 @@ import PrivateRoute from "./configs/PrivateRoute.js";
 
 
 function App() {
-
   return (
     <BrowserRouter>
       <AuthProvider>

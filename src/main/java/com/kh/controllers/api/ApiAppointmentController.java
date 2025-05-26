@@ -18,6 +18,7 @@ import java.nio.file.AccessDeniedException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -187,6 +188,46 @@ public class ApiAppointmentController {
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Collections.singletonMap("error", "Không tìm thấy lịch hẹn!"));
+        }
+    }
+
+    @PostMapping("/secure/appointments/{id}/reschedule")
+    public ResponseEntity<?> rescheduleAppointment(
+            @PathVariable("id") Long appointmentId,
+            @RequestParam("newAppointmentDate") String newAppointmentDate,
+            @RequestParam("newTimeSlot") int newTimeSlot,
+            Authentication auth
+    ) {
+        try {
+            // Kiểm tra quyền truy cập và vai trò
+            securityUtils.requireRole(auth, UserRole.PATIENT);
+
+            // Parse ngày giờ từ string sang Date
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            Date newDate = dateFormat.parse(newAppointmentDate);
+
+            // Gọi service để đổi lịch hẹn
+            AppointmentDTO updatedAppointment = appointmentService.rescheduleAppointment(
+                    appointmentId,
+                    newDate,
+                    newTimeSlot,
+                    auth.getName()
+            );
+
+            return ResponseEntity.status(HttpStatus.OK).body(updatedAppointment);
+
+        } catch (ParseException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Collections.singletonMap("error", "Định dạng ngày không hợp lệ!"));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Collections.singletonMap("error", e.getMessage()));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Collections.singletonMap("error", e.getMessage()));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Collections.singletonMap("error", e.getMessage()));
         }
     }
 

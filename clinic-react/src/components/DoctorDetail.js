@@ -17,14 +17,18 @@ const DoctorDetail = () => {
   const [reviews, setReviews] = useState([]);
   const [showModal, setShowModal] = useState(false);
 
-
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState();
 
   const [reviewStatus, setReviewStatus] = useState(null);
 
+  const [responseTexts, setResponseTexts] = useState({});
+  const [responseLoading, setResponseLoading] = useState({});
+  const [responseError, setResponseError] = useState({});
 
   const checkReviewStatus = async () => {
+    if (user?.userRole != "PATIENT") return;
+
     await authApis().get(endpoints["doctor-check-review"](id))
       .then((res) => {
         setReviewStatus(res.data);
@@ -69,6 +73,27 @@ const DoctorDetail = () => {
     checkReviewStatus();
   }, [id]);
 
+  const handleDoctorResponse = async (reviewId) => {
+    const doctorResponse = responseTexts[reviewId];
+    if (!doctorResponse || doctorResponse.trim() === "") return;
+    setResponseLoading(prev => ({ ...prev, [reviewId]: true }));
+    setResponseError(prev => ({ ...prev, [reviewId]: "" }));
+    try {
+      console.log(doctorResponse);
+      const formData = new FormData();
+      formData.append("doctorResponse", doctorResponse)
+
+      await authApis().post(endpoints["doctor-response"](reviewId), formData);
+      // Sau khi gửi thành công, reload lại reviews
+      await loadReviews();
+      setResponseTexts(prev => ({ ...prev, [reviewId]: "" }));
+    } catch (e) {
+      console.log(e);
+      setResponseError(prev => ({ ...prev, [reviewId]: "Gửi phản hồi thất bại!" }));
+    } finally {
+      setResponseLoading(prev => ({ ...prev, [reviewId]: false }));
+    }
+  };
 
   if (loading) {
 
@@ -129,8 +154,8 @@ const DoctorDetail = () => {
               </Card.Text>
               {!user || user.userRole !== "DOCTOR" &&
                 <Button variant="primary" className="w-100" onClick={() => setShowModal(true)}>
-                Đặt lịch khám
-              </Button>
+                  Đặt lịch khám
+                </Button>
               }
             </Card.Body>
           </Card>
@@ -191,7 +216,7 @@ const DoctorDetail = () => {
               </Card.Header>
               <Card.Body>
                 {reviewStatus === 'ALLOWED' && (
-                  <Card className="mb-4">
+                  <Card className="mb-4" bg="light">
                     <Card.Body>
                       <ReviewForm doctorId={doctorDTO.id} onSuccess={loadReviews} />
                     </Card.Body>
@@ -223,15 +248,39 @@ const DoctorDetail = () => {
                             <div className="text-muted" style={{ fontSize: 13 }}>
                               {r.createdAt}
                             </div>
-                            <div>{r.comment}</div>
-                            {r.doctorResponse &&
+                            <Stack direction="horizontal">
+                              <div>{r.comment}</div>
+
+
+                            </Stack>
+
+                            {r.doctorResponse
+                              ?
                               <div className="mt-2 p-2 bg-light border rounded">
                                 <b>Phản hồi từ bác sĩ:</b> {r.doctorResponse}
                                 <div className="text-muted" style={{ fontSize: 12 }}>
                                   {r.doctorResponseDate}
                                 </div>
                               </div>
+                              :
+                              user?.id == doctorDTO.id &&
+                              <InputGroup className="mt-1">
+                                <Form.Control
+                                  placeholder="Ghi phản hồi..."
+                                  value={responseTexts[r.id] || ""}
+                                  onChange={e => setResponseTexts(prev => ({ ...prev, [r.id]: e.target.value }))}
+                                  disabled={responseLoading[r.id]}
+                                />
+                                <Button
+                                  className="ms-auto"
+                                  onClick={() => handleDoctorResponse(r.id)}
+                                  disabled={responseLoading[r.id] || !(responseTexts[r.id] && responseTexts[r.id].trim())}
+                                >
+                                  {responseLoading[r.id] ? "Đang gửi..." : "Phản hồi"}
+                                </Button>
+                              </InputGroup>
                             }
+                            {responseError[r.id] && <div className="text-danger mt-1">{responseError[r.id]}</div>}
                           </div>
                         </Stack>
                       </ListGroup.Item>
@@ -243,12 +292,14 @@ const DoctorDetail = () => {
           </Stack>
         </Col>
       </Row>
-      <AppointmentModal
-        show={showModal}
-        onHide={() => setShowModal(false)}
-        doctorId={doctorDTO.id}
-        doctorName={doctorDTO.lastName + " " + doctorDTO.firstName}
-      />
+      {user?.userRole == "PATIENT" &&
+        <AppointmentModal
+          show={showModal}
+          onHide={() => setShowModal(false)}
+          doctorId={doctorDTO.id}
+          doctorName={doctorDTO.lastName + " " + doctorDTO.firstName}
+        />
+      }
     </Container>
   );
 };

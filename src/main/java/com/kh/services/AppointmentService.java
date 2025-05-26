@@ -2,7 +2,6 @@ package com.kh.services;
 
 import com.kh.dtos.AppointmentDTO;
 import com.kh.enums.AppointmentSlot;
-import jakarta.transaction.Transactional;
 
 import java.nio.file.AccessDeniedException;
 import java.util.Date;
@@ -21,4 +20,6 @@ public interface AppointmentService {
 
     void cancelAppointment(Long appointmentId, String username)
             throws AccessDeniedException, NoSuchElementException, IllegalStateException;
+
+    AppointmentDTO rescheduleAppointment(Long appointmentId, Date newDate, int newTimeSlot, String username) throws AccessDeniedException;
 }

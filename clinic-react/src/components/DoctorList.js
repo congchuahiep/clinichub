@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Alert, Badge, Button, Card, Col, Container, Form, Image, Pagination, Row, Spinner, Stack } from "react-bootstrap";
+import { useEffect, useRef, useState } from "react";
+import { Alert, Badge, Button, Card, Col, Container, Form, Image, InputGroup, Pagination, Row, Spinner, Stack } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import APIs, { endpoints } from "../configs/APIs";
 import { useAuth } from "../configs/AuthProvider";
@@ -31,18 +31,21 @@ const DoctorList = () => {
   const [selectedDoctorId, setSelectedDoctorId] = useState(null);
   const [selectedDoctorName, setSelectedDoctorName] = useState(null);
 
-  const loadDoctor = async (page, hospitalId, specialtyId) => {
+  const [searchDoctorName, setSearchDoctorName] = useState("");
+  const searchTimeout = useRef(null);
+
+  const loadDoctor = async (page, hospitalId, specialtyId, doctorName) => {
     try {
       setLoading(true);
-      const response = await APIs.get(endpoints.doctors, { params: { page, hospitalId, specialtyId } });
-      console.log(response);
+      const response = await APIs.get(endpoints.doctors, {
+        params: { page, hospitalId, specialtyId, doctorName }
+      });
       setDoctor(response.data.results);
       setPageNumber(response.data.pageNumber);
       setPageSize(response.data.pageSize);
       setTotalDoctor(response.data.totalElements);
       setTotalPage(response.data.totalPages);
     } catch (ex) {
-      console.log(ex);
       setErrorMessage("Không thể tải lên danh sách các bác sĩ")
     } finally {
       setLoading(false);
@@ -79,8 +82,8 @@ const DoctorList = () => {
   }, [])
 
   useEffect(() => {
-    loadDoctor(1, selectedHospital, selectedSpecialty);
-  }, [selectedHospital, selectedSpecialty])
+    loadDoctor(1, selectedHospital, selectedSpecialty, searchDoctorName);
+  }, [selectedHospital, selectedSpecialty]);
 
   const handleOpenAppointmentModal = (doctorId, doctorName) => {
     if (!user || user.userRole === "DOCTOR") {
@@ -185,27 +188,49 @@ const DoctorList = () => {
               pageSize={pageSize}
               totalDoctor={totalDoctor}
               totalPage={totalPage}
-              onPageChange={(page) => loadDoctor(page, selectedHospital, selectedSpecialty)}
+              onPageChange={(page) => loadDoctor(page, selectedHospital, selectedSpecialty, searchDoctorName)}
               loading={loading}
               handleOpenModal={handleOpenAppointmentModal}
+              searchDoctorName={searchDoctorName}
+              setSearchDoctorName={setSearchDoctorName}
+              searchTimeout={searchTimeout}
+              selectedHospital={selectedHospital}
+              selectedSpecialty={selectedSpecialty}
+              loadDoctor={loadDoctor}
             />
 
 
           </Col>
         </Row>
       </Container>
-
-      <AppointmentModal
-        show={showModal}
-        onHide={() => setShowModal(false)}
-        doctorId={selectedDoctorId}
-        doctorName={selectedDoctorName}
-      />
+      {user?.userRole == "PATIENT" &&
+        <AppointmentModal
+          show={showModal}
+          onHide={() => setShowModal(false)}
+          doctorId={selectedDoctorId}
+          doctorName={selectedDoctorName}
+        />
+      }
     </>
   )
 }
 
-const DoctorListView = ({ doctors, pageNumber, pageSize, totalDoctor, totalPage, onPageChange, loading, handleOpenModal }) => {
+const DoctorListView = ({
+  doctors,
+  pageNumber,
+  pageSize,
+  totalDoctor,
+  totalPage,
+  onPageChange,
+  loading,
+  handleOpenModal,
+  searchDoctorName,
+  loadDoctor,
+  setSearchDoctorName,
+  searchTimeout,
+  selectedHospital,
+  selectedSpecialty
+}) => {
 
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -228,74 +253,99 @@ const DoctorListView = ({ doctors, pageNumber, pageSize, totalDoctor, totalPage,
 
   return (
     <Card bg={"light"}>
-      <Card.Body className="d-flex justify-content-center align-items-center" style={{ minHeight: 500 }}>
-        {loading ? (
-          <Spinner animation="border" variant="primary" />
-        ) : totalDoctor === 0 ? (
-          <div className="text-center w-100">
-            <h5>Không có bác sĩ nào :'(</h5>
-          </div>
-        ) : (
-          <Stack gap={3} className="mb-3">
-            {doctors.map((doctor) =>
-              <Card key={doctor.doctorDTO.id} >
-                <Container fluid>
-                  <Card.Body>
-                    <Stack direction="horizontal" style={{ gap: "2rem" }}>
-                      <Image
-                        width={180}
-                        height={180}
-                        src={doctor.doctorDTO.avatar || "/no-avatar.jpg"}
-                        style={{ objectFit: "cover" }}
-                        roundedCircle
-                      />
+      <Card.Body className="" style={{ minHeight: 500 }}>
 
-                      <div>
-                        <Card.Title>
-                          BS {doctor.doctorDTO.lastName} {doctor.doctorDTO.firstName}
-                        </Card.Title>
-                        <Card.Text>
-                          Khoa khám: {doctor.doctorLicenseDTOSet.map((doctorLicense) =>
-                            <Badge
-                              key={doctorLicense.licenseNumber}
-                              bg="secondary"> {doctorLicense.specialtyName}
-                            </Badge>
-                          )}
-                        </Card.Text>
-                        <Card.Text>
-                          Bệnh viện: {doctor.hospitalDTOSet.map((hospital) => hospital.name).join(', ')}
-                        </Card.Text>
-                      </div>
+        <Stack gap={3} className="mb-3">
+          <Form className="mb-3">
+            <InputGroup>
+              <InputGroup.Text>
+                <i class="bi bi-search"></i>
+              </InputGroup.Text>
+              <Form.Control
+                type="text"
+                placeholder="Tìm kiếm bác sĩ theo tên..."
+                value={searchDoctorName}
+                onChange={e => {
+                  setSearchDoctorName(e.target.value);
+                  if (searchTimeout.current) clearTimeout(searchTimeout.current);
+                  searchTimeout.current = setTimeout(() => {
+                    loadDoctor(1, selectedHospital, selectedSpecialty, e.target.value);
+                  }, 500); // debounce 500ms
+                }}
+              />
+            </InputGroup>
+          </Form>
 
-                      <div className="ms-auto" style={{ width: 132 }}>
-                        <Card.Text>
-                          <RatingStars avgRating={doctor.avgRating} />
-                        </Card.Text>
-                        <Stack gap={2}>
-                          <Button
-                            variant="outline-success"
-                            onClick={() => navigate(`/doctors/${doctor.doctorDTO.id}`)}
-                          >
-                            Xem chi tiết
-                          </Button>
-
-                          {!user || user?.userRole !== "DOCTOR" &&
-                            <Button onClick={() => handleOpenModal(
-                              doctor.doctorDTO.id,
-                              doctor.doctorDTO.lastName + " " + doctor.doctorDTO.firstName
-                            )}>
-                              Đặt lịch khám
-                            </Button>
-                          }
+          <div className="d-flex justify-content-center align-items-center">
+            {loading ? (
+              <Spinner animation="border" variant="primary" />
+            ) : totalDoctor === 0 ? (
+              <div className="text-center w-100">
+                <h5>Không có bác sĩ nào :'(</h5>
+              </div>
+            ) : (
+              <Stack gap={3} className="mb-3">
+                {doctors.map((doctor) =>
+                  <Card key={doctor.doctorDTO.id} >
+                    <Container fluid>
+                      <Card.Body>
+                        <Stack direction="horizontal" style={{ gap: "2rem" }}>
+                          <Image
+                            width={180}
+                            height={180}
+                            src={doctor.doctorDTO.avatar || "/no-avatar.jpg"}
+                            style={{ objectFit: "cover" }}
+                            roundedCircle
+                          />
+                          <div>
+                            <Card.Title>
+                              BS {doctor.doctorDTO.lastName} {doctor.doctorDTO.firstName}
+                            </Card.Title>
+                            <Card.Text>
+                              Khoa khám: {doctor.doctorLicenseDTOSet.map((doctorLicense) =>
+                                <Badge
+                                  key={doctorLicense.licenseNumber}
+                                  bg="secondary"
+                                  className="me-1"
+                                >
+                                  {doctorLicense.specialtyName}
+                                </Badge>
+                              )}
+                            </Card.Text>
+                            <Card.Text>
+                              Bệnh viện: {doctor.hospitalDTOSet.map((hospital) => hospital.name).join(', ')}
+                            </Card.Text>
+                          </div>
+                          <div className="ms-auto" style={{ width: 132 }}>
+                            <Card.Text>
+                              <RatingStars avgRating={doctor.avgRating} />
+                            </Card.Text>
+                            <Stack gap={2}>
+                              <Button
+                                variant="outline-success"
+                                onClick={() => navigate(`/doctors/${doctor.doctorDTO.id}`)}
+                              >
+                                Xem chi tiết
+                              </Button>
+                              {!user || user?.userRole !== "DOCTOR" &&
+                                <Button onClick={() => handleOpenModal(
+                                  doctor.doctorDTO.id,
+                                  doctor.doctorDTO.lastName + " " + doctor.doctorDTO.firstName
+                                )}>
+                                  Đặt lịch khám
+                                </Button>
+                              }
+                            </Stack>
+                          </div>
                         </Stack>
-                      </div>
-                    </Stack>
-                  </Card.Body>
-                </Container>
-              </Card>
+                      </Card.Body>
+                    </Container>
+                  </Card>
+                )}
+              </Stack>
             )}
-          </Stack>
-        )}
+          </div>
+        </Stack>
       </Card.Body>
       <Card.Footer className="d-flex justify-content-between align-items-center">
         <Card.Text className="mb-0">

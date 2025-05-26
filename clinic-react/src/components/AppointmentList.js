@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Alert, Badge, Button, ButtonGroup, Card, Col, Container, Dropdown, DropdownButton, Form, Image, Modal, Placeholder, Row, Stack } from "react-bootstrap";
+import { Alert, Badge, Button, ButtonGroup, Card, Col, Container, Dropdown, DropdownButton, Form, Image, Modal, Placeholder, Row, Stack, Toast, ToastContainer, ToggleButton } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { authApis, endpoints } from "../configs/APIs";
 import { useAuth } from "../configs/AuthProvider";
@@ -23,6 +23,17 @@ const AppointmentList = () => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
   const [cancelError, setCancelError] = useState("");
+
+  // Đổi lịch hẹn
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [rescheduleLoading, setRescheduleLoading] = useState(false);
+  const [rescheduleError, setRescheduleError] = useState("");
+  const [rescheduleSuccess, setRescheduleSuccess] = useState(false);
+  const [rescheduleDate, setRescheduleDate] = useState("");
+  const [rescheduleSlot, setRescheduleSlot] = useState("");
+  const [rescheduleTakenSlots, setRescheduleTakenSlots] = useState([]);
+  const [rescheduleDoctorId, setRescheduleDoctorId] = useState(null);
+  const [rescheduleAppointmentId, setRescheduleAppointmentId] = useState(null);
 
   useEffect(() => {
     const loadAppointments = async () => {
@@ -56,9 +67,68 @@ const AppointmentList = () => {
       setAppointments(res.data.results || res.data);
     } catch (e) {
       console.log(e);
-      setCancelError("Huỷ lịch hẹn thất bại!");
+      setCancelError(e?.response?.data?.error || "Không thể đổi lịch hẹn.");
     } finally {
       setCancelLoading(false);
+    }
+  };
+
+  // Hàm mở modal đổi lịch
+  const handleOpenRescheduleModal = (appointment) => {
+    setRescheduleDoctorId(appointment.doctor.id);
+    setRescheduleAppointmentId(appointment.id);
+    setRescheduleDate("");
+    setRescheduleSlot("");
+    setRescheduleError("");
+    setShowRescheduleModal(true);
+  };
+
+  // Hàm fetch taken slots
+  const fetchRescheduleTakenSlots = async (doctorId, date) => {
+    if (!doctorId || !date) return;
+    try {
+      const params = { doctorId, date };
+      const res = await authApis().get(endpoints["check-taken-slots"], { params });
+      const slots = res.data.map(s => Number(s.replace("SLOT_", "")));
+      setRescheduleTakenSlots(slots);
+    } catch (e) {
+      setRescheduleTakenSlots([]);
+    }
+  };
+
+  // Khi ngày đổi lịch thay đổi, fetch lại taken slots
+  useEffect(() => {
+    if (showRescheduleModal && rescheduleDoctorId && rescheduleDate) {
+      fetchRescheduleTakenSlots(rescheduleDoctorId, rescheduleDate);
+    }
+  }, [showRescheduleModal, rescheduleDoctorId, rescheduleDate]);
+
+  // Hàm submit đổi lịch
+  const handleReschedule = async (e) => {
+    e.preventDefault();
+    setRescheduleLoading(true);
+    setRescheduleError("");
+    try {
+
+      const formData = new FormData();
+      formData.append("newAppointmentDate", rescheduleDate);
+      formData.append("newTimeSlot", rescheduleSlot);
+
+      console.log(rescheduleDate)
+
+      await authApis().post(endpoints["appointment-reschedule"](rescheduleAppointmentId), formData);
+
+      setShowRescheduleModal(false);
+      setRescheduleSuccess(true);
+      // Reload lại danh sách
+      const params = { status: appointmentStatus };
+      const res = await authApis().get(endpoints.appointments, { params });
+      setAppointments(res.data.results || res.data);
+    } catch (e) {
+      console.log(e);
+      setRescheduleError(e?.response?.data?.error || "Không thể đổi lịch hẹn.");
+    } finally {
+      setRescheduleLoading(false);
     }
   };
 
@@ -202,11 +272,14 @@ const AppointmentList = () => {
                         {
                           STATUS_MAP[appointment.status] == STATUS_MAP.scheduled &&
                           <DropdownButton align="end" as={ButtonGroup} title="" id="bg-nested-dropdown">
-                            <Dropdown.Item
-                              eventKey="1"
-                            >
-                              Đổi lịch hẹn
-                            </Dropdown.Item>
+                            { user.userRole == "PATIENT" &&
+                              <Dropdown.Item
+                                eventKey="1"
+                                onClick={() => handleOpenRescheduleModal(appointment)}
+                              >
+                                Đổi lịch hẹn
+                              </Dropdown.Item>
+                            }
                             <Dropdown.Item
                               eventKey="2"
                               onClick={() => {
@@ -249,6 +322,75 @@ const AppointmentList = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      {/* Modal đổi lịch hẹn */}
+      <Modal show={showRescheduleModal} onHide={() => setShowRescheduleModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Đổi lịch hẹn</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form onSubmit={handleReschedule}>
+            <Form.Group className="mb-3">
+              <Form.Label>Ngày khám mới</Form.Label>
+              <Form.Control
+                type="date"
+                required
+                value={rescheduleDate}
+                min={new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+                max={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+                onChange={e => setRescheduleDate(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Ca khám mới</Form.Label>
+              <ButtonGroup className="d-flex flex-wrap gap-2">
+                {SLOT_LABELS.map((label, idx) => (
+                  <ToggleButton
+                    key={idx + 1}
+                    id={`reschedule-slot-${idx + 1}`}
+                    type="radio"
+                    variant={rescheduleTakenSlots.includes(idx + 1) ? "outline-secondary" : "outline-primary"}
+                    name="rescheduleTimeSlot"
+                    value={idx + 1}
+                    checked={rescheduleSlot === (idx + 1).toString()}
+                    onChange={e => setRescheduleSlot(e.currentTarget.value)}
+                    style={{ borderRadius: 5 }}
+                    disabled={rescheduleTakenSlots.includes(idx + 1)}
+                  >
+                    {label}
+                  </ToggleButton>
+                ))}
+              </ButtonGroup>
+            </Form.Group>
+            {rescheduleError && <Alert variant="danger">{rescheduleError}</Alert>}
+            <div className="d-flex justify-content-end gap-2">
+              <Button variant="secondary" onClick={() => setShowRescheduleModal(false)}>
+                Huỷ
+              </Button>
+              <Button type="submit" variant="primary" disabled={rescheduleLoading || !rescheduleDate || !rescheduleSlot}>
+                {rescheduleLoading ? "Đang đổi..." : "Xác nhận đổi lịch"}
+              </Button>
+            </div>
+          </Form>
+        </Modal.Body>
+      </Modal>
+
+      {/* Toast thông báo thành công */}
+      <ToastContainer position="bottom-end" className="p-3" style={{ position: "fixed" }}>
+        <Toast
+          onClose={() => setRescheduleSuccess(false)}
+          show={rescheduleSuccess}
+          delay={3000}
+          autohide
+        >
+          <Toast.Header>
+            <strong className="me-auto">Thông báo</strong>
+          </Toast.Header>
+          <Toast.Body>
+            ✅ Đổi lịch thành công!
+          </Toast.Body>
+        </Toast>
+      </ToastContainer>
     </Container>
   );
 };

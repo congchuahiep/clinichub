@@ -50,7 +50,8 @@ const Header = () => {
 
                     <Dropdown.Menu>
                       <Dropdown.Item onClick={() => {
-                        navigate("/profile")
+                        if (user?.userRole == "PATIENT") navigate("/profile")
+                        else navigate(`/doctors/${user.id}`)
                         console.log(user)
                       }}>
                         Xem thông tin cá nhân

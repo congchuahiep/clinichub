@@ -11,7 +11,6 @@ import com.kh.pojo.User;
 import com.kh.repositories.AppointmentRepository;
 import com.kh.repositories.MedicalRecordRepository;
 import com.kh.repositories.UserRepository;
-import com.kh.scheduler.AppointmentScheduler;
 import com.kh.services.AppointmentService;
 
 import java.nio.file.AccessDeniedException;
@@ -290,5 +289,83 @@ public class AppointmentServiceImpl implements AppointmentService {
         // Cập nhật trạng thái
         appointment.setStatus("cancelled");
         appointmentRepository.update(appointment);
+    }
+
+    @Transactional
+    @Override
+    public AppointmentDTO rescheduleAppointment(Long appointmentId, Date newDate, int newTimeSlot, String username) throws AccessDeniedException {
+        // Lấy thông tin lịch hẹn cũ
+        Appointment oldAppointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy lịch hẹn với ID: " + appointmentId));
+
+        // Kiểm tra quyền sở hữu lịch hẹn
+        if (!oldAppointment.getPatientId().getUsername().equals(username)) {
+            throw new AccessDeniedException("Bạn không có quyền đổi lịch này.");
+        }
+
+        // Kiểm tra lịch của bác sĩ
+        if (appointmentRepository.isDoctorTimeSlotTaken(
+                oldAppointment.getDoctorId(),
+                newDate,
+                AppointmentSlot.fromSlotNumber(newTimeSlot)
+        )) {
+            throw new IllegalArgumentException("Bác sĩ đã có lịch khám vào ca này!");
+        }
+
+        // Kiểm tra lịch của bệnh nhân
+        if (appointmentRepository.isPatientTimeSlotTaken(
+                oldAppointment.getPatientId(),
+                newDate,
+                AppointmentSlot.fromSlotNumber(newTimeSlot)
+        )) {
+            throw new IllegalArgumentException("Bạn đã có lịch khám vào ca này!");
+        }
+
+        // Kiểm tra thời gian - chỉ được huỷ trước 24h
+        // Chuyển Date sang LocalDate
+        LocalDate appointmentDate = oldAppointment.getAppointmentDate().toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
+
+        // Chuyển String time sang LocalTime
+        LocalTime appointmentTime = LocalTime.parse(
+                oldAppointment.getTimeSlot().getStartTime(),
+                DateTimeFormatter.ofPattern("HH:mm"));
+
+        // Kết hợp thành LocalDateTime
+        LocalDateTime appointmentDateTime = LocalDateTime.of(appointmentDate, appointmentTime);
+
+        if (LocalDateTime.now().plusHours(24).isAfter(appointmentDateTime)) {
+            throw new IllegalStateException(
+                    "Không thể đổi lịch hẹn trong vòng 24 giờ trước giờ khám!");
+        }
+
+        // Đổi trạng thái lịch hẹn cũ thành "rescheduled"
+        oldAppointment.setStatus("rescheduled");
+        appointmentRepository.update(oldAppointment);
+
+        // Tạo lịch hẹn mới từ thông tin cũ
+        Appointment newAppointment = new Appointment();
+        newAppointment.setDoctorId(oldAppointment.getDoctorId());
+        newAppointment.setPatientId(oldAppointment.getPatientId());
+        newAppointment.setAppointmentDate(newDate);
+        newAppointment.setTimeSlot(AppointmentSlot.fromSlotNumber(newTimeSlot));
+        newAppointment.setStatus("scheduled");
+        newAppointment.setNote(oldAppointment.getNote());
+
+        // Lưu lịch hẹn mới
+        Appointment savedAppointment = appointmentRepository.save(newAppointment);
+
+        // Gửi email thông báo cho bệnh nhân và bác sĩ (bất đồng bộ)
+        CompletableFuture.runAsync(() -> {
+            try {
+                sendAppointmentEmailToPatient(savedAppointment.getPatientId(), savedAppointment.getDoctorId(), savedAppointment);
+                sendAppointmentEmailToDoctor(savedAppointment.getPatientId(), savedAppointment.getDoctorId(), savedAppointment);
+            } catch (Exception e) {
+                logger.error("Error sending reschedule emails", e);
+            }
+        }, emailExecutor);
+
+        return new AppointmentDTO(savedAppointment);
     }
 }
