@@ -4,10 +4,13 @@ import com.kh.dtos.DoctorLicenseDTO;
 import com.kh.dtos.DoctorProfileDTO;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import com.kh.dtos.DoctorWithRating;
+import com.kh.enums.DoctorStatus;
+import com.kh.repositories.impl.UserRepositoryImpl;
 import com.kh.utils.PaginatedResult;
 import com.kh.exceptions.FileUploadException;
 import com.kh.pojo.Hospital;
@@ -221,5 +224,33 @@ public class UserServiceImpl implements UserService {
     public PaginatedResult<DoctorProfileDTO> getDoctors(Map<String, String> params) {
         PaginatedResult<DoctorWithRating> doctors = this.userRepository.doctorList(params);
         return doctors.mapTo(DoctorProfileDTO::new);
+    }
+
+    @Override
+    public PaginatedResult<DoctorProfileDTO> getDoctorsWithoutRating(Map<String, String> params) {
+        // Lấy danh sách bác sĩ từ repository
+        PaginatedResult<User> doctors = userRepository.doctorListWithoutRating(params);
+
+        // Chuyển User -> DoctorProfileDTO
+        List<DoctorProfileDTO> doctorProfileDTOList = doctors.getResults().stream()
+                .map(DoctorProfileDTO::new)
+                .toList();
+
+        return new PaginatedResult<>(doctorProfileDTOList, doctors.getPageNumber(),
+                doctors.getPageSize(), doctors.getTotalElements());
+    }
+
+    @Override
+    @Transactional
+    public void approveDoctor(Long id) {
+        User doctor = userRepository.findDoctorByIdWithLicense(id).orElseThrow(() -> new RuntimeException("Khong tìm thấy bác sĩ"));
+        doctor.setIsActive(true);
+
+        DoctorLicense doctorLicense = doctor.getDoctorLicenseSet().iterator().next();
+
+        doctorLicense.setStatus("approved");
+
+        userRepository.update(doctor);
+        doctorLisenceRepository.update(doctorLicense);
     }
 }

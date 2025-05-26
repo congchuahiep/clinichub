@@ -190,4 +190,16 @@ public class AppointmentServiceImpl implements AppointmentService {
         return dto;
     }
 
+
+    public Long countPatientsCompletedByMonth(int year, int month) {
+        return appointmentRepository.countDistinctPatientsCompletedByMonth(year, month);
+    }
+
+    public Long countPatientsCompletedByQuarter(int year, int quarter) {
+        return appointmentRepository.countDistinctPatientsCompletedByQuarter(year, quarter);
+    }
+
+    public Long countPatientsCompleted() {
+        return appointmentRepository.countDistinctPatientsCompleted();
+    }
 }

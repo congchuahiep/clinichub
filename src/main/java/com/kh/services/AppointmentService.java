@@ -13,5 +13,9 @@ public interface AppointmentService {
 
     AppointmentDTO getAppointmentDetails(Long appointmentId, String username) throws AccessDeniedException, NoSuchElementException;
 
+    Long countPatientsCompletedByMonth(int year, int month);
 
+    Long countPatientsCompletedByQuarter(int year, int quarter);
+
+    Long countPatientsCompleted();
 }

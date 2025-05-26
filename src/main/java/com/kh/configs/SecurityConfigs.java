@@ -66,6 +66,10 @@ public class SecurityConfigs {
                 .authorizeHttpRequests(requests -> requests
                         // Yêu cầu xác thực khi truy cập vào `/` hoặc `/home` và những api yêu cầu xác thực
                         .requestMatchers("/", "/home").authenticated()
+
+                        .requestMatchers("/doctors").permitAll()
+                        .requestMatchers("/doctors/**").permitAll()
+                        .requestMatchers("/statistics/**").permitAll()
                         .requestMatchers("/api/secure/**").authenticated()
                         // Cho phép tất cả mọi người truy cập vào endpoint này
                         .requestMatchers("/js/**").permitAll()
@@ -87,8 +91,8 @@ public class SecurityConfigs {
 
         return http.build(); // Dựng
     }
-    
-    
+
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 

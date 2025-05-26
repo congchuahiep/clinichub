@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Danh sách bác sĩ</title>
+    <th:block th:replace="base :: styles"></th:block>
+</head>
+<body>
+<nav th:replace="base :: navbar"></nav>
+
+<div class="card shadow">
+    <div class="card-body">
+        <h4 class="card-title text-primary mb-4">Danh sách bác sĩ</h4>
+        <table class="table table-bordered table-hover align-middle text-center">
+            <thead class="table-primary">
+            <tr>
+                <th>ID</th>
+                <th>Tên bác sĩ</th>
+                <th>Giấy phép</th>
+                <th>Xác nhận bác sĩ</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="doctor : ${doctors}">
+                <td th:text="${doctor.doctorDTO.id}"></td>
+                <td th:text="${doctor.doctorDTO.firstName + ' ' + doctor.doctorDTO.lastName}"></td>
+                <td>
+                    <ul class="list-unstyled mb-0" th:each="doctorLicense : ${doctor.doctorLicenseDTOSet}">
+                        <li th:text="${doctorLicense.specialtyName}" />
+                    </ul>
+                </td>
+                <td class="d-flex justify-content-center">
+                    <form th:action="@{'/doctors/approve/' + ${doctor.doctorDTO.id}}" method="post" class="me-2">
+                        <button type="submit" class="btn btn-success btn-sm">Xác nhận</button>
+                    </form>
+
+<!--                    <form th:action="@{'/doctors/reject/' + ${doctor.doctorDTO.id}}" method="post">-->
+<!--                        <button type="submit" class="btn btn-outline-danger btn-sm">Từ chối</button>-->
+<!--                    </form>-->
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+
+
+<div th:replace="base :: footer"></div>
+</body>
+</html>
+<!--        <td th:each="doctorLicense : ${doctor.doctorLicenseDTOSet}">-->
+<!--            <p th:text="${doctorLicense.specialtyName}"></p>-->
+<!--        </td>-->

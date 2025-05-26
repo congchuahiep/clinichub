@@ -19,4 +19,8 @@ public interface UserService extends UserDetailsService {
     DoctorProfileDTO retrieveDoctor(Long doctorId);
 
     PaginatedResult<DoctorProfileDTO> getDoctors(Map<String, String> params);
+
+    PaginatedResult<DoctorProfileDTO> getDoctorsWithoutRating(Map<String, String> params);
+
+    void approveDoctor(Long id);
 }

@@ -116,6 +116,42 @@ public class UserRepositoryImpl extends AbstractRepository<User, Long> implement
     }
 
     @Override
+    public PaginatedResult<User> doctorListWithoutRating(Map<String, String> params) {
+        Session session = getCurrentSession();
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+
+        // Tạo CriteriaQuery để lấy danh sách bác sĩ
+        CriteriaQuery<User> doctorCriteriaQuery = builder.createQuery(User.class);
+        Root<User> root = doctorCriteriaQuery.from(User.class);
+
+        // Join bảng khác để đồng thời trả về dữ liệu bằng hành nghề và các bệnh viện mà bác sĩ làm
+        Fetch<User, DoctorLicense> doctorLicenseFetch = root.fetch("doctorLicenseSet", JoinType.LEFT);
+        Fetch<User, Hospital> hospitalFetch = root.fetch("hospitalSet", JoinType.LEFT);
+        doctorLicenseFetch.fetch("specialtyId", JoinType.LEFT);
+
+        // Thêm các điều kiện truy vấn
+        List<Predicate> predicates = createDoctorPredicates(builder, root, params);
+        doctorCriteriaQuery.where(predicates.toArray(new Predicate[0]));
+
+        // Thêm tùy chọn phân trang
+        int page = params.containsKey("page") ? Integer.parseInt(params.getOrDefault("page", "1")) : 1;
+        int pageSize = params.containsKey("pageSize") ? Integer.parseInt(params.getOrDefault("pageSize", "10")) : 10;
+
+        Query<User> query = session.createQuery(doctorCriteriaQuery)
+                .setFirstResult((page - 1) * pageSize)
+                .setMaxResults(pageSize);
+
+        // Lấy danh sách bác sĩ
+        List<User> doctors = query.getResultList();
+
+        // Tính tổng số bác sĩ phù hợp
+        Long totalDoctors = countDoctor(params);
+
+        // Trả về kết quả phân trang
+        return new PaginatedResult<>(doctors, page, pageSize, totalDoctors);
+    }
+
+    @Override
     public Optional<User> findDoctorById(Long id) {
         Session session = getCurrentSession();
         Query<User> query = session.createQuery(
@@ -128,6 +164,25 @@ public class UserRepositoryImpl extends AbstractRepository<User, Long> implement
 
         return Optional.ofNullable(query.getSingleResult());
     }
+
+    @Override
+    public Optional<User> findDoctorByIdWithLicense(Long id) {
+        Session session = getCurrentSession();
+        Query<User> query = session.createQuery(
+                "SELECT DISTINCT u FROM User u " +
+                        "JOIN FETCH u.doctorLicenseSet dl " +
+                        "WHERE u.id = :id " +
+                        "AND u.role = :role " +
+                        "AND u.isActive = false ",
+                User.class
+        );
+        query.setParameter("id", id);
+        query.setParameter("role", UserRole.DOCTOR);
+        return query.uniqueResultOptional();
+    }
+
+
+
 
     @Override
     public Optional<DoctorWithRating> findDoctorProfileById(Long id) {
@@ -237,7 +292,12 @@ public class UserRepositoryImpl extends AbstractRepository<User, Long> implement
 
         // Điều kiện cơ bản
         predicates.add(builder.equal(root.get("role"), UserRole.DOCTOR));
-        predicates.add(builder.isTrue(root.get("isActive")));
+
+        if (params.containsKey("isFalse")) {
+            predicates.add(builder.isFalse(root.get("isActive")));
+        } else {
+            predicates.add(builder.isTrue(root.get("isActive")));
+        }
 
         // Tìm kiếm theo bệnh viên
         Long hospitalId = params.containsKey("hospitalId") ? Long.parseLong(params.get("hospitalId")) : null;

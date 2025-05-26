@@ -136,4 +136,55 @@ public class AppointmentRepositoryImpl extends AbstractRepository<Appointment, L
                 .getResultList();
     }
 
+    public Long countDistinctPatientsCompletedByMonth(int year, int month) {
+        Session session = getCurrentSession();
+
+        String hql = "SELECT COUNT(DISTINCT a.patientId) " +
+                "FROM Appointment a " +
+                "WHERE a.status = :status " +
+                "AND year(a.appointmentDate) = :year " +
+                "AND month(a.appointmentDate) = :month";
+
+        Query<Long> query = session.createQuery(hql, Long.class);
+        query.setParameter("status", "completed");
+        query.setParameter("year", year);
+        query.setParameter("month", month);
+
+        return query.uniqueResultOptional().orElse(0L);
+    }
+
+    public Long countDistinctPatientsCompletedByQuarter(int year, int quarter) {
+        Session session = getCurrentSession();
+
+        int startMonth = (quarter - 1) * 3 + 1; // quý 1 -> 1, quý 2 -> 4, quý 3 -> 7, quý 4 -> 10
+        int endMonth = startMonth + 2;
+
+        String hql = "SELECT COUNT(DISTINCT a.patientId) " +
+                "FROM Appointment a " +
+                "WHERE a.status = :status " +
+                "AND year(a.appointmentDate) = :year " +
+                "AND month(a.appointmentDate) BETWEEN :startMonth AND :endMonth";
+
+        Query<Long> query = session.createQuery(hql, Long.class);
+        query.setParameter("status", "completed");
+        query.setParameter("year", year);
+        query.setParameter("startMonth", startMonth);
+        query.setParameter("endMonth", endMonth);
+
+        return query.uniqueResultOptional().orElse(0L);
+    }
+
+    public Long countDistinctPatientsCompleted() {
+        Session session = getCurrentSession();
+
+        String hql = "SELECT COUNT(DISTINCT a.patientId) " +
+                "FROM Appointment a " +
+                "WHERE a.status = :status";
+
+        Query<Long> query = session.createQuery(hql, Long.class);
+        query.setParameter("status", "completed");
+
+        return query.uniqueResultOptional().orElse(0L);
+    }
+
 }

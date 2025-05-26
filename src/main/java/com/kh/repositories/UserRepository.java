@@ -30,4 +30,8 @@ public interface UserRepository extends GenericRepository<User, Long> {
     Optional<User> findDoctorByUsername(String username);
 
     Long countDoctor(Map<String, String> params);
+
+    PaginatedResult<User> doctorListWithoutRating(Map<String, String> params);
+
+    Optional<User> findDoctorByIdWithLicense(Long id);
 }

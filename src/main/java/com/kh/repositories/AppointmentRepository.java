@@ -26,4 +26,9 @@ public interface AppointmentRepository extends GenericRepository<Appointment, Lo
 
     List<Appointment> findAppointmentsBetweenDates(Date from, Date to);
 
+    Long countDistinctPatientsCompletedByMonth(int year, int month);
+
+    Long countDistinctPatientsCompletedByQuarter(int year, int quarter);
+
+    Long countDistinctPatientsCompleted();
 }

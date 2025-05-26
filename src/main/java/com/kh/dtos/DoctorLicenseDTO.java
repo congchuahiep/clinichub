@@ -2,9 +2,12 @@ package com.kh.dtos;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.kh.enums.DoctorStatus;
 import com.kh.pojo.DoctorLicense;
 import com.kh.pojo.Specialty;
 import com.kh.pojo.User;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.util.Date;
@@ -40,6 +43,10 @@ public class DoctorLicenseDTO {
     @NotBlank
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     private Date expiry;
+
+    @Enumerated(EnumType.STRING)
+    private DoctorStatus status;
+
 
     public DoctorLicenseDTO() {}
 
@@ -77,6 +84,14 @@ public class DoctorLicenseDTO {
      */
     public void setDoctorId(long doctorId) {
         this.doctorId = doctorId;
+    }
+
+    public DoctorStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(DoctorStatus status) {
+        this.status = status;
     }
 
     /**

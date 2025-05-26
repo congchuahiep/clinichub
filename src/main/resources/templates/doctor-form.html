@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Danh sách bác sĩ</title>
+</head>
+<body>
+
+<h1>Danh sách bác sĩ</h1>
+<a href="/doctors/add">Thêm bác sĩ</a>
+<table border="1">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Tên</th>
+        <th>Email</th>
+        <th>Hành động</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="doctor : ${doctors}">
+        <td th:text="${doctor.id}"></td>
+        <td th:text="${doctor.fullName}"></td>
+        <td th:text="${doctor.email}"></td>
+        <td>
+            <a th:href="@{'/doctors/edit/' + ${doctor.id}}">Chỉnh sửa</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>
