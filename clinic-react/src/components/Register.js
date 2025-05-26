@@ -81,6 +81,8 @@ const RegisterForm = ({ userType }) => {
   const handleRegister = async (e) => {
     e.preventDefault();
 
+    console.log(user);
+
     // Kiểm tra mật khẩu xác nhận
     if (user.password !== user.confirmPassword) {
       setMessage("Mật khẩu KHÔNG khớp");
@@ -159,40 +161,40 @@ const RegisterForm = ({ userType }) => {
         <Form.Group className="mt-3 mb-1">
           <Form.Label>Họ và tên</Form.Label>
           <InputGroup>
-            <Form.Control required value={user.lastName} placeholder="Họ" />
-            <Form.Control required value={user.firstName} placeholder="Tên" />
+            <Form.Control required value={user.lastName} onChange={(e) => setState(e.target.value, "lastName")} placeholder="Họ" />
+            <Form.Control required value={user.firstName} onChange={(e) => setState(e.target.value, "firstName")} placeholder="Tên" />
           </InputGroup>
           <Form.Control.Feedback type="invalid">Hãy ghi đầy đủ họ tên của bạn!</Form.Control.Feedback>
         </Form.Group>
 
         <Form.Group className="mt-3 mb-1">
           <Form.Label>Số điện thoại</Form.Label>
-          <Form.Control required value={user.phone} placeholder="Số điện thoại" />
+          <Form.Control required value={user.phone} onChange={(e) => setState(e.target.value, "phone")} placeholder="Số điện thoại" />
         </Form.Group>
 
         <Form.Group className="mt-3 mb-1">
           <Form.Label>Email</Form.Label>
-          <Form.Control required type="email" value={user.email} placeholder="Email" />
+          <Form.Control required type="email" value={user.email} onChange={(e) => setState(e.target.value, "email")} placeholder="Email" />
         </Form.Group>
 
         <Form.Group className="mt-3 mb-1">
           <Form.Label>Tên đăng nhập</Form.Label>
-          <Form.Control required value={user.username} placeholder="Tên đăng nhập" />
+          <Form.Control required value={user.username} onChange={(e) => setState(e.target.value, "username")} placeholder="Tên đăng nhập" />
         </Form.Group>
 
         <Form.Group className="mt-3 mb-1">
           <Form.Label>Mật khẩu</Form.Label>
-          <Form.Control required type="password" value={user.password} placeholder="Mật khẩu" />
+          <Form.Control required type="password" value={user.password} onChange={(e) => setState(e.target.value, "password")} placeholder="Mật khẩu" />
         </Form.Group>
 
         <Form.Group className="mt-3 mb-1">
           <Form.Label>Xác nhận mật khẩu</Form.Label>
-          <Form.Control required type="password" value={user.confirmPassword} placeholder="Nhập lại mật khẩu" />
+          <Form.Control required type="password" value={user.confirmPassword} onChange={(e) => setState(e.target.value, "confirmPassword")} placeholder="Nhập lại mật khẩu" />
         </Form.Group>
 
         <Form.Group className="mt-3 mb-1">
           <Form.Label>Ngày sinh</Form.Label>
-          <Form.Control required value={user.birthDate} type="date" placeholder="Chọn ngày sinh của bạn" />
+          <Form.Control required value={user.birthDate} onChange={(e) => setState(e.target.value, "birthDate")} type="date" placeholder="Chọn ngày sinh của bạn" />
         </Form.Group>
 
         <Form.Group className="mt-3 mb-1">
@@ -207,7 +209,7 @@ const RegisterForm = ({ userType }) => {
             <option value="female">Nữ</option>
           </Form.Select>
         </Form.Group>
-        
+
         <Form.Control
           ref={avatar}
           className="mt-3 mb-1"
@@ -217,6 +219,21 @@ const RegisterForm = ({ userType }) => {
         />
 
         {userType === "doctor" && <>
+
+          <Form.Group className="mt-3 mb-1">
+            <Form.Label>Giấy phép hành nghề</Form.Label>
+            <Form.Control required value={user.licenseNumber} onChange={(e) => setState(e.target.value, "licenseNumber")} placeholder="Giấy phép hành nghề..." />
+          </Form.Group>
+
+          <Form.Group className="mt-3 mb-1">
+            <Form.Label>Ngày cấp giấy phép</Form.Label>
+            <Form.Control required value={user.issuedDate} type="date" onChange={(e) => setState(e.target.value, "issuedDate")} placeholder="Ngày cấp..." />
+          </Form.Group>
+
+          <Form.Group className="mt-3 mb-1">
+            <Form.Label>Ngày giấy phép hết hạn</Form.Label>
+            <Form.Control required value={user.expiryDate} type="date" onChange={(e) => setState(e.target.value, "expiryDate")} placeholder="Ngày hết hạn..." />
+          </Form.Group>
 
           <Form.Group className="mt-3 mb-1">
             <Form.Label>Bệnh viện</Form.Label>
