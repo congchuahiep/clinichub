@@ -33,7 +33,8 @@ public class DispatcherServerletInit extends AbstractAnnotationConfigDispatcherS
                 SecurityConfigs.class, // Cấu hình Spring boot Security
                 UtilsConfig.class, // Cấu hình các bean tiện ích
                 MailConfig.class,
-                SchedulerConfig.class
+                SchedulerConfig.class,
+                JacksonConfig.class
         };
     }
 

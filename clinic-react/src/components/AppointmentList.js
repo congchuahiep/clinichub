@@ -19,7 +19,7 @@ const AppointmentList = () => {
   const [selectedAppointment, setSelectedAppointment] = useState(null);
 
   const [loading, setLoading] = useState(true);
-  const [error, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   // Huỷ lịch hẹn
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -64,10 +64,10 @@ const AppointmentList = () => {
     }
   };
 
-  if (error) {
+  if (errorMessage) {
     return (
       <Container className="py-5">
-        <Alert variant="danger">{error}</Alert>
+        <Alert variant="danger">{errorMessage}</Alert>
       </Container>
     );
   }

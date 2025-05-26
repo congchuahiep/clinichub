@@ -23,9 +23,4 @@ public class SchedulerConfig {
         scheduler.setPoolSize(10);
         return scheduler;
     }
-
-    @Scheduled(fixedDelay = 5000)
-    public void sayHello() {
-        log.info("Hello, World!");
-    }
 }

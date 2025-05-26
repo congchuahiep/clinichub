@@ -1,8 +1,10 @@
 package com.kh.configs;
 
 import java.util.Properties;
+import java.util.TimeZone;
 import javax.sql.DataSource;
 
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,6 +29,13 @@ public class HibernateConfigs {
 
     @Autowired
     private Environment env;
+
+    @PostConstruct
+    public void init() {
+        // Đặt default timezone cho JVM
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
+    }
+
 
     /**
      * Cấu hình getSessionFactory() để sản xuất các Session cho việc truy vấn
@@ -57,8 +66,12 @@ public class HibernateConfigs {
         Properties props = new Properties();
         props.put(DIALECT, env.getProperty("hibernate.dialect"));
         props.put(SHOW_SQL, env.getProperty("hibernate.showSql"));
-        props.put(JDBC_TIME_ZONE, "UTC");
-        props.put("hibernate.jpa.compliance.global_id_generators", "false");
+
+        // Thêm các cấu hình timezone
+        props.setProperty("hibernate.jdbc.time_zone", "Asia/Ho_Chi_Minh");
+        props.setProperty("hibernate.connection.useTimezone", "true");
+        props.setProperty("hibernate.jpa.compliance.global_id_generators", "false");
+
         return props;
     }
 

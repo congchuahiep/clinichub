@@ -42,6 +42,63 @@ public class AppointmentRepositoryImpl extends AbstractRepository<Appointment, L
         return count > 0;
     }
 
+    @Override
+    public boolean isPatientTimeSlotTaken(User patient, Date date, AppointmentSlot slot) {
+        Session session = getCurrentSession();
+
+        String hql =
+                "SELECT COUNT(a) FROM Appointment a " +
+                        "WHERE a.patientId = :patientId " +
+                        "AND a.appointmentDate = :date " +
+                        "AND a.timeSlot = :slot " +
+                        "AND a.status = :status ";
+
+        Long count = session.createQuery(hql, Long.class)
+                .setParameter("patientId", patient)
+                .setParameter("date", date)
+                .setParameter("slot", slot)
+                .setParameter("status", "scheduled")
+                .getSingleResult();
+
+        return count > 0;
+    }
+
+    @Override
+    public List<AppointmentSlot> findDoctorTakenSlots(Long doctorId, Date date) {
+        Session session = getCurrentSession();
+
+        String hql =
+                "SELECT a.timeSlot " +
+                        "FROM Appointment a " +
+                        "WHERE a.doctorId.id = :doctorId " +
+                        "AND DATE(a.appointmentDate) = DATE(:date) " +
+                        "AND a.status = 'scheduled' " +
+                        "ORDER BY a.timeSlot ASC ";
+
+        return session.createQuery(hql, AppointmentSlot.class)
+                .setParameter("doctorId", doctorId)
+                .setParameter("date", date)
+                .getResultList();
+    }
+
+    @Override
+    public List<AppointmentSlot> findPatientTakenSlots(Long patientId, Date date) {
+        Session session = getCurrentSession();
+
+        String hql =
+                "SELECT a.timeSlot " +
+                        "FROM Appointment a " +
+                        "WHERE a.patientId.id = :patientId " +
+                        "AND DATE(a.appointmentDate) = DATE(:date) " +
+                        "AND a.status = 'scheduled' " +
+                        "ORDER BY a.timeSlot ASC";
+
+        return session.createQuery(hql, AppointmentSlot.class)
+                .setParameter("patientId", patientId)
+                .setParameter("date", date)
+                .getResultList();
+    }
+
     // Phương thức lấy danh sách lịch hẹn của bệnh nhân
     @Override
     public List<Appointment> findByPatientId(Long patientId, String status) {
@@ -167,7 +224,7 @@ public class AppointmentRepositoryImpl extends AbstractRepository<Appointment, L
                          WHEN 'SLOT_15' THEN '16:30:00'
                          WHEN 'SLOT_16' THEN '17:00:00'
                      END) < CURRENT_TIME())
-
+                
                 \s""";
 
         session.createMutationQuery(hql)

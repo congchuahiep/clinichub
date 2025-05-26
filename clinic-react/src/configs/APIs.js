@@ -18,8 +18,9 @@ export const endpoints = {
     'doctor-detail': (id) => `/doctors/${id}`,
     'doctor-reviews': (id) => `/doctors/${id}/reviews`,
     'doctor-check-review': (id) => `/secure/doctors/${id}/check-review`,
-
+    
     'appointments': '/secure/appointments',
+    'check-taken-slots': '/secure/appointments/taken-slots',
     'appointment-detail': (id) => `/secure/appointments/${id}`,
     'appointment-diagnosis': (id) => `/secure/appointments/${id}/medical-records`,
     'appointment-cancel': (id) => `/secure/appointments/${id}/cancel`,

@@ -19,7 +19,7 @@ public class AppointmentDTO {
     private Long doctorId;
 
     @NotNull(message = "Thời gian khám không được để trống")
-    @JsonFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Ho_Chi_Minh")
     private Date appointmentDate;
 
     @NotNull(message = "Ca khám không được để trống!")
@@ -33,7 +33,7 @@ public class AppointmentDTO {
     // Các trường này chỉ để xuất
     private String status;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Ho_Chi_Minh")
     private Date createdAt;
 
     private UserDTO doctor;

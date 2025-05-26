@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -44,6 +45,18 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Autowired
     private EmailService emailService;
 
+    @Transactional
+    @Override
+    public List<AppointmentSlot> findTakenSlots(Long patientId, Long doctorId, Date date) {
+        List<AppointmentSlot> doctorTakenSlots = this.appointmentRepository.findDoctorTakenSlots(doctorId, date);
+        List<AppointmentSlot> patientTakenSlots = this.appointmentRepository.findPatientTakenSlots(patientId, date);
+
+        doctorTakenSlots.addAll(patientTakenSlots);
+
+        return doctorTakenSlots.stream()
+                .distinct()
+                .collect(Collectors.toList());
+    }
 
     @Override
     public AppointmentDTO addAppointment(AppointmentDTO appointmentDTO, String patientUsername) {
@@ -63,7 +76,16 @@ public class AppointmentServiceImpl implements AppointmentService {
                 appointmentDTO.getAppointmentDate(),
                 timeSlot
         )) {
-            throw new IllegalArgumentException("Bác sĩ đã có lịch vào ca này.");
+            throw new IllegalArgumentException("Bác sĩ đã có lịch khám vào ca này!");
+        }
+
+        // Kiểm tra lịch của bệnh nhân
+        if (appointmentRepository.isPatientTimeSlotTaken(
+                patient,
+                appointmentDTO.getAppointmentDate(),
+                timeSlot
+        )) {
+            throw new IllegalArgumentException("Bạn đã có lịch khám vào ca này!");
         }
 
         // Chuyển đổi DTO thành entity

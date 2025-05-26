@@ -2,6 +2,7 @@ package com.kh.controllers.api;
 
 import com.kh.dtos.AppointmentDTO;
 import com.kh.dtos.MedicalRecordDTO;
+import com.kh.enums.AppointmentSlot;
 import com.kh.enums.UserRole;
 import com.kh.services.AppointmentService;
 import com.kh.services.MedicalRecordService;
@@ -139,7 +140,7 @@ public class ApiAppointmentController {
 
     /**
      * Endpoint: {@code /api/secure/appointments/{id}}
-     *
+     * <p>
      * Xem chi tiết lịch khám
      */
     @GetMapping("/secure/appointments/{appointmentId}")
@@ -189,4 +190,26 @@ public class ApiAppointmentController {
         }
     }
 
+    @GetMapping("/secure/appointments/taken-slots")
+    public ResponseEntity<?> findTakenSlots(
+            @RequestParam("doctorId") Long doctorId,
+            @RequestParam("date") String date,
+            Authentication auth
+    ) {
+        try {
+            securityUtils.requireRole(auth, UserRole.PATIENT);
+            Long patientId = securityUtils.getCurrentUserId(auth);
+
+            // Parse ngày giờ từ string sang Date
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+            List<AppointmentSlot> takenSlots = appointmentService.findTakenSlots(patientId, doctorId, dateFormat.parse(date));
+
+            return ResponseEntity.ok(takenSlots);
+
+        }  catch (ParseException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Collections.singletonMap("appointmentDatetime", "Định dạng ngày giờ không hợp lệ!"));
+        }
+    }
 }

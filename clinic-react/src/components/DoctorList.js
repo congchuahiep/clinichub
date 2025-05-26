@@ -32,24 +32,21 @@ const DoctorList = () => {
   const [selectedDoctorName, setSelectedDoctorName] = useState(null);
 
   const loadDoctor = async (page, hospitalId, specialtyId) => {
-    setLoading(true);
-
-    await APIs.get(endpoints.doctors, { params: { page, hospitalId, specialtyId } })
-      .then((response) => {
-        console.log(response);
-        setDoctor(response.data.results);
-        setPageNumber(response.data.pageNumber);
-        setPageSize(response.data.pageSize);
-        setTotalDoctor(response.data.totalElements);
-        setTotalPage(response.data.totalPages);
-      })
-      .catch(ex => {
-        console.log(ex);
-        setErrorMessage(ex.response.data)
-      })
-      .finally(() => {
-        setLoading(false);
-      })
+    try {
+      setLoading(true);
+      const response = await APIs.get(endpoints.doctors, { params: { page, hospitalId, specialtyId } });
+      console.log(response);
+      setDoctor(response.data.results);
+      setPageNumber(response.data.pageNumber);
+      setPageSize(response.data.pageSize);
+      setTotalDoctor(response.data.totalElements);
+      setTotalPage(response.data.totalPages);
+    } catch (ex) {
+      console.log(ex);
+      setErrorMessage("Không thể tải lên danh sách các bác sĩ")
+    } finally {
+      setLoading(false);
+    }
   }
 
   const loadHospitals = async () => {
@@ -59,7 +56,7 @@ const DoctorList = () => {
       })
       .catch(ex => {
         console.log(ex);
-        setErrorMessage("[" + ex.response.status + "] Không thể load được bệnh viện");
+        setErrorMessage("[" + ex.code + "] Không thể load được bệnh viện");
       })
   }
 
@@ -71,7 +68,7 @@ const DoctorList = () => {
       })
       .catch(ex => {
         console.log(ex);
-        setErrorMessage("[" + ex.response.status + "] Không thể load được các chuyên khoa");
+        setErrorMessage("[" + ex.code + "] Không thể load được các chuyên khoa");
       })
   }
 
@@ -95,6 +92,14 @@ const DoctorList = () => {
     setSelectedDoctorName(doctorName);
     setShowModal(true);
   };
+
+  if (errorMessage) {
+    return (
+      <Container className="py-5">
+        <Alert variant="danger">{errorMessage}</Alert>
+      </Container>
+    );
+  }
 
   return (
     <>
