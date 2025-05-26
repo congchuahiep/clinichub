@@ -11,6 +11,7 @@ import com.kh.pojo.User;
 import com.kh.repositories.AppointmentRepository;
 import com.kh.repositories.MedicalRecordRepository;
 import com.kh.repositories.UserRepository;
+import com.kh.scheduler.AppointmentScheduler;
 import com.kh.services.AppointmentService;
 
 import java.nio.file.AccessDeniedException;
@@ -22,12 +23,17 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 import com.kh.services.EmailService;
 import com.kh.utils.DateUtils;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -44,6 +50,11 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private Executor emailExecutor;
+
+    private static final Logger logger = LoggerFactory.getLogger(AppointmentServiceImpl.class);
 
     @Transactional
     @Override
@@ -100,69 +111,87 @@ public class AppointmentServiceImpl implements AppointmentService {
         // Lưu vào database
         Appointment savedAppointment = appointmentRepository.save(appointment);
 
-        sendAppointmentEmailToPatient(patient, doctor, savedAppointment);
-        sendAppointmentEmailToDoctor(patient, doctor, savedAppointment);
+        // Gửi email bất đồng bộ và không chờ đợi
+        CompletableFuture.runAsync(() -> {
+            try {
+                sendAppointmentEmailToPatient(patient, doctor, savedAppointment);
+                sendAppointmentEmailToDoctor(patient, doctor, savedAppointment);
+            } catch (Exception e) {
+                // Log lỗi nhưng không throw exception
+                logger.error("Không thể gửi mail", e);
+            }
+        }, emailExecutor);
 
 
         // Chuyển entity thành DTO để trả về
         return new AppointmentDTO(savedAppointment);
     }
 
-    private void sendAppointmentEmailToPatient(User patient, User doctor, Appointment appointment) {
-        EmailDTO email = new EmailDTO();
-        String formattedDate = DateUtils.formatVietnameseDate(appointment.getAppointmentDate());
+    @Async("emailExecutor")
+    protected void sendAppointmentEmailToPatient(User patient, User doctor, Appointment appointment) {
+        try {
+            EmailDTO email = new EmailDTO();
+            String formattedDate = DateUtils.formatVietnameseDate(appointment.getAppointmentDate());
 
-        email.setToEmail(patient.getEmail());
-        email.setSubject("Xác nhận lịch hẹn khám với bác sĩ " + doctor.getFirstName() + " " + doctor.getLastName());
+            email.setToEmail(patient.getEmail());
+            email.setSubject("Xác nhận lịch hẹn khám với bác sĩ " + doctor.getFirstName() + " " + doctor.getLastName());
 
-        String body = String.format(
-                "Kính chào %s %s,\n\n" +
-                        "Bạn đã đặt lịch hẹn thành công với bác sĩ %s %s.\n\n" +
-                        "🗓 Ngày khám: %s\n" +
-                        "⏰ Ca khám: %s\n" +
-                        "📝 Ghi chú: %s\n\n" +
-                        "Vui lòng đến sớm 15 phút để làm thủ tục trước khi khám.\n\n" +
-                        "Trân trọng,\nPhòng khám ABC",
-                patient.getLastName(),
-                patient.getFirstName(),
-                doctor.getLastName(),
-                doctor.getFirstName(),
-                formattedDate,
-                appointment.getTimeSlot().getSlotNumber(),
-                appointment.getNote() == null || appointment.getNote().isEmpty() ? "Không có" : appointment.getNote()
-        );
+            String body = String.format(
+                    "Kính chào %s %s,\n\n" +
+                            "Bạn đã đặt lịch hẹn thành công với bác sĩ %s %s.\n\n" +
+                            "🗓 Ngày khám: %s\n" +
+                            "⏰ Ca khám: %s\n" +
+                            "📝 Ghi chú: %s\n\n" +
+                            "Vui lòng đến sớm 15 phút để làm thủ tục trước khi khám.\n\n" +
+                            "Trân trọng,\nPhòng khám ABC",
+                    patient.getLastName(),
+                    patient.getFirstName(),
+                    doctor.getLastName(),
+                    doctor.getFirstName(),
+                    formattedDate,
+                    appointment.getTimeSlot().getSlotNumber(),
+                    appointment.getNote() == null || appointment.getNote().isEmpty() ? "Không có" : appointment.getNote()
+            );
 
-        email.setBody(body);
-        emailService.sendEmail(email);
+            email.setBody(body);
+            emailService.sendEmail(email);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    private void sendAppointmentEmailToDoctor(User patient, User doctor, Appointment appointment) {
-        EmailDTO email = new EmailDTO();
-        String formattedDate = DateUtils.formatVietnameseDate(appointment.getAppointmentDate());
+    @Async("emailExecutor")
+    protected void sendAppointmentEmailToDoctor(User patient, User doctor, Appointment appointment) {
+        try {
+            EmailDTO email = new EmailDTO();
+            String formattedDate = DateUtils.formatVietnameseDate(appointment.getAppointmentDate());
 
-        email.setToEmail(doctor.getEmail());
-        email.setSubject("Lịch hẹn mới từ bệnh nhân " + patient.getFirstName() + " " + patient.getLastName());
+            email.setToEmail(doctor.getEmail());
+            email.setSubject("Lịch hẹn mới từ bệnh nhân " + patient.getFirstName() + " " + patient.getLastName());
 
-        String body = String.format(
-                "Kính gửi Bác sĩ %s %s,\n\n" +
-                        "Một bệnh nhân mới đã đặt lịch hẹn khám với bác sĩ.\n\n" +
-                        "👤 Tên bệnh nhân: %s %s\n" +
-                        "🗓 Ngày khám: %s\n" +
-                        "⏰ Ca khám: %s\n" +
-                        "📝 Ghi chú: %s\n\n" +
-                        "Vui lòng kiểm tra lịch làm việc của mình để chuẩn bị trước buổi khám.\n\n" +
-                        "Trân trọng,\nHệ thống quản lý lịch hẹn",
-                doctor.getLastName(),
-                doctor.getFirstName(),
-                patient.getLastName(),
-                patient.getFirstName(),
-                formattedDate,
-                appointment.getTimeSlot().getSlotNumber(),
-                appointment.getNote() == null || appointment.getNote().isEmpty() ? "Không có" : appointment.getNote()
-        );
+            String body = String.format(
+                    "Kính gửi Bác sĩ %s %s,\n\n" +
+                            "Một bệnh nhân mới đã đặt lịch hẹn khám với bác sĩ.\n\n" +
+                            "👤 Tên bệnh nhân: %s %s\n" +
+                            "🗓 Ngày khám: %s\n" +
+                            "⏰ Ca khám: %s\n" +
+                            "📝 Ghi chú: %s\n\n" +
+                            "Vui lòng kiểm tra lịch làm việc của mình để chuẩn bị trước buổi khám.\n\n" +
+                            "Trân trọng,\nHệ thống quản lý lịch hẹn",
+                    doctor.getLastName(),
+                    doctor.getFirstName(),
+                    patient.getLastName(),
+                    patient.getFirstName(),
+                    formattedDate,
+                    appointment.getTimeSlot().getSlotNumber(),
+                    appointment.getNote() == null || appointment.getNote().isEmpty() ? "Không có" : appointment.getNote()
+            );
 
-        email.setBody(body);
-        emailService.sendEmail(email);
+            email.setBody(body);
+            emailService.sendEmail(email);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 

@@ -72,7 +72,7 @@ public class AppointmentRepositoryImpl extends AbstractRepository<Appointment, L
                         "FROM Appointment a " +
                         "WHERE a.doctorId.id = :doctorId " +
                         "AND DATE(a.appointmentDate) = DATE(:date) " +
-                        "AND a.status = 'scheduled' " +
+                        "AND a.status IN ('scheduled', 'completed') " +
                         "ORDER BY a.timeSlot ASC ";
 
         return session.createQuery(hql, AppointmentSlot.class)
@@ -90,7 +90,7 @@ public class AppointmentRepositoryImpl extends AbstractRepository<Appointment, L
                         "FROM Appointment a " +
                         "WHERE a.patientId.id = :patientId " +
                         "AND DATE(a.appointmentDate) = DATE(:date) " +
-                        "AND a.status = 'scheduled' " +
+                        "AND a.status IN ('scheduled', 'completed') " +
                         "ORDER BY a.timeSlot ASC";
 
         return session.createQuery(hql, AppointmentSlot.class)

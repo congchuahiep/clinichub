@@ -429,7 +429,6 @@ const AppointmentDetail = () => {
 
           <h5>Chẩn đoán</h5>
           {medicalRecord ? (
-
             <Table bordered>
               <tbody>
                 <tr>
@@ -458,7 +457,6 @@ const AppointmentDetail = () => {
                 </tr>
               </tbody>
             </Table>
-
           ) : (
             <Alert variant="secondary">Chưa có chẩn đoán khám bệnh cho lịch hẹn này.</Alert>
           )}

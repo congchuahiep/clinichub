@@ -199,24 +199,25 @@ const AppointmentList = () => {
                         >
                           Xem chi tiết
                         </Button>
-                        <DropdownButton align="end" as={ButtonGroup} title="" id="bg-nested-dropdown">
-                          <Dropdown.Item
-                            eventKey="1"
-                            disabled={STATUS_MAP[appointment.status] == STATUS_MAP.completed}
-                          >
-                            Đổi lịch hẹn
-                          </Dropdown.Item>
-                          <Dropdown.Item
-                            eventKey="2"
-                            disabled={STATUS_MAP[appointment.status] == STATUS_MAP.completed}
-                            onClick={() => {
-                              setSelectedAppointment(appointment);
-                              setShowCancelModal(true);
-                            }}
-                          >
-                            Huỷ lịch hẹn
-                          </Dropdown.Item>
-                        </DropdownButton>
+                        {
+                          STATUS_MAP[appointment.status] == STATUS_MAP.scheduled &&
+                          <DropdownButton align="end" as={ButtonGroup} title="" id="bg-nested-dropdown">
+                            <Dropdown.Item
+                              eventKey="1"
+                            >
+                              Đổi lịch hẹn
+                            </Dropdown.Item>
+                            <Dropdown.Item
+                              eventKey="2"
+                              onClick={() => {
+                                setSelectedAppointment(appointment);
+                                setShowCancelModal(true);
+                              }}
+                            >
+                              Huỷ lịch hẹn
+                            </Dropdown.Item>
+                          </DropdownButton>
+                        }
                       </ButtonGroup>
                     </Stack>
                   </Stack>

@@ -34,7 +34,8 @@ public class DispatcherServerletInit extends AbstractAnnotationConfigDispatcherS
                 UtilsConfig.class, // Cấu hình các bean tiện ích
                 MailConfig.class,
                 SchedulerConfig.class,
-                JacksonConfig.class
+                JacksonConfig.class,
+                AsyncConfig.class
         };
     }
 
