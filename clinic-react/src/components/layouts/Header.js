@@ -49,7 +49,10 @@ const Header = () => {
                     </Dropdown.Toggle>
 
                     <Dropdown.Menu>
-                      <Dropdown.Item onClick={() => console.log(user)}>
+                      <Dropdown.Item onClick={() => {
+                        navigate("/profile")
+                        console.log(user)
+                      }}>
                         Xem thông tin cá nhân
                       </Dropdown.Item>
                       <Dropdown.Item

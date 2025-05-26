@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
-import { Alert, Badge, Button, ButtonGroup, Card, Col, Container, Dropdown, DropdownButton, Form, Image, Modal, Placeholder, Row, Spinner, Stack } from "react-bootstrap";
-import cookie from "react-cookies";
+import { Alert, Badge, Button, ButtonGroup, Card, Col, Container, Dropdown, DropdownButton, Form, Image, Modal, Placeholder, Row, Stack } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import { SLOT_LABELS, STATUS_MAP } from "../utils/AppointmentUtils";
 import { authApis, endpoints } from "../configs/APIs";
-import { MyUserContext } from "../configs/MyContexts";
 import { useAuth } from "../configs/AuthProvider";
+import { SLOT_LABELS, STATUS_MAP } from "../utils/AppointmentUtils";
 import Breadcrumbs from "./layouts/Breadcrumbs";
 
 

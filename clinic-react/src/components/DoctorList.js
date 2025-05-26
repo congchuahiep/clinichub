@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { Alert, Badge, Button, Card, Col, Container, Form, Image, Pagination, Row, Spinner, Stack } from "react-bootstrap";
-import APIs, { endpoints } from "../configs/APIs";
-import RatingStars from "./RatingStars";
 import { useNavigate } from "react-router-dom";
-import Breadcrumbs from "./layouts/Breadcrumbs";
-import AppointmentModal from "./AppointmentModal";
+import APIs, { endpoints } from "../configs/APIs";
 import { useAuth } from "../configs/AuthProvider";
+import AppointmentModal from "./AppointmentModal";
+import Breadcrumbs from "./layouts/Breadcrumbs";
+import RatingStars from "./RatingStars";
 
 const DoctorList = () => {
 
@@ -83,7 +83,6 @@ const DoctorList = () => {
   }, [selectedHospital, selectedSpecialty])
 
   const handleOpenAppointmentModal = (doctorId, doctorName) => {
-
     if (!user || user.userRole === "DOCTOR") {
       navigator("/login");
     }

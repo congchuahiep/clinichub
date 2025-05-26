@@ -30,6 +30,10 @@ import com.kh.utils.ValidationUtils;
 @RequestMapping("/api")
 public class ApiUserController {
 
+
+// XỬ LÝ YÊU CẦU CỦA NGƯỜI DÙNG
+    // NGƯỜI DÙNG MUỐN -> CONTROLLER XỬ LÝ
+
     @Autowired
     private UserService userService;
 
@@ -80,8 +84,8 @@ public class ApiUserController {
      * </p>
      *
      * @param patientDataMap Phần form-data của bệnh nhân, lưu trữ các thông tin
-     * cá nhân
-     * @param avatarUpload Ảnh avatar của bệnh nhân upload
+     *                       cá nhân
+     * @param avatarUpload   Ảnh avatar của bệnh nhân upload
      * @return Reponse JSON đối tượng user mới tạo
      */
     @PostMapping(value = "/patient-register", consumes = "multipart/form-data")
@@ -133,9 +137,9 @@ public class ApiUserController {
      * </p>
      *
      * @param doctorDataMap Phần form-data của bác sĩ, lưu trữ các thông tin
-     *                       cá nhân và bằng lưuu hành nghề
-     * @param hospitalId Id của bệnh viện mà bác sĩ khám
-     * @param avatarUpload   Ảnh avatar của bác sĩ upload
+     *                      cá nhân và bằng lưuu hành nghề
+     * @param hospitalId    Id của bệnh viện mà bác sĩ khám
+     * @param avatarUpload  Ảnh avatar của bác sĩ upload
      * @return Reponse JSON đối tượng user mới tạo
      */
     @PostMapping("/doctor-register")

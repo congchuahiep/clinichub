@@ -89,10 +89,10 @@ public class ApiHealthRecordController {
      * Endpoints: {@code PUT /api/secure/health-records/{id}}
      *
      * <p>
-     * Truy cập và xem chi tiết một hồ sơ sức khoẻ của bệnh nhân mà bác sĩ đã/đang khám
+     * Chỉnh sửa một hồ sơ sức khoẻ của bệnh nhân mà bác sĩ đã/đang khám
      * </p>
      *
-     * @param patientId Id bệnh nhân cần xem hồ sơ
+     * @param patientId Id bệnh nhân
      * @param auth      Thông tin người dùng
      */
     @PutMapping("/secure/health-records/{id}")
