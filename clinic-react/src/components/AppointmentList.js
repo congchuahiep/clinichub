@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Alert, Badge, Button, Card, Col, Container, Form, Image, Placeholder, Row, Spinner, Stack } from "react-bootstrap";
+import { Alert, Badge, Button, ButtonGroup, Card, Col, Container, Dropdown, DropdownButton, Form, Image, Modal, Placeholder, Row, Spinner, Stack } from "react-bootstrap";
 import cookie from "react-cookies";
 import { useNavigate } from "react-router-dom";
 import { SLOT_LABELS, STATUS_MAP } from "../utils/AppointmentUtils";
@@ -16,9 +16,15 @@ const AppointmentList = () => {
   const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
   const [appointmentStatus, setAppointmentStatus] = useState("scheduled");
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
 
   const [loading, setLoading] = useState(true);
   const [error, setErrorMessage] = useState("");
+
+  // Huỷ lịch hẹn
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [cancelError, setCancelError] = useState("");
 
   useEffect(() => {
     const loadAppointments = async () => {
@@ -27,6 +33,7 @@ const AppointmentList = () => {
       try {
         const params = { status: appointmentStatus };
         const res = await authApis().get(endpoints.appointments, { params });
+        console.log(res);
         setAppointments(res.data.results || res.data); // tuỳ API trả về
       } catch (e) {
         setErrorMessage("Không thể tải danh sách lịch khám!");
@@ -37,6 +44,26 @@ const AppointmentList = () => {
     loadAppointments();
   }, [appointmentStatus]);
 
+
+  const handleCancelAppointment = async () => {
+    if (!selectedAppointment) return;
+    setCancelLoading(true);
+    setCancelError("");
+    try {
+      await authApis().post(endpoints["appointment-cancel"](selectedAppointment.id));
+      setShowCancelModal(false);
+      // Reload lại danh sách
+      const params = { status: appointmentStatus };
+      const res = await authApis().get(endpoints.appointments, { params });
+      setAppointments(res.data.results || res.data);
+    } catch (e) {
+      console.log(e);
+      setCancelError("Huỷ lịch hẹn thất bại!");
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
   if (error) {
     return (
       <Container className="py-5">
@@ -46,7 +73,7 @@ const AppointmentList = () => {
   }
 
   return (
-    <Container lassName="py-3 mx-auto" style={{ maxWidth: 700 }}>
+    <Container className="py-3 mx-auto" style={{ maxWidth: 700 }}>
       <h3 className="mb-4">Lịch Khám Bệnh</h3>
       <Breadcrumbs />
 
@@ -88,18 +115,19 @@ const AppointmentList = () => {
                   <Stack direction="horizontal" gap={5}>
 
                     <div>
-                      <i class="bi bi-calendar-week"> </i>
+                      <i className="bi bi-calendar-week"> </i>
                       {" "}Ngày khám: {appointment.appointmentDate}
                     </div>
 
                     <div>
-                      <i class="bi bi-clock"></i>
+                      <i className="bi bi-clock"></i>
                       {" "}Giờ khám: {SLOT_LABELS[appointment.timeSlot - 1] || appointment.timeSlot}
                     </div>
 
                     <Badge className="ms-auto" bg={STATUS_MAP[appointment.status]?.variant || "secondary"}>
                       {STATUS_MAP[appointment.status]?.label || appointment.status}
                     </Badge>
+
                   </Stack>
                 </Card.Header>
                 <Card.Body>
@@ -108,8 +136,8 @@ const AppointmentList = () => {
                       <Row>
                         {user.userRole == "PATIENT" ?
                           <Col>
-                            <Alert variant="success" height={240}>
-                              <i class="bi bi-clipboard2-pulse-fill"> </i>
+                            <Alert variant={STATUS_MAP[appointment.status]?.variant || "secondary"} height={240}>
+                              <i className="bi bi-clipboard2-pulse-fill"> </i>
                               <b>Bác sĩ</b>
                               <Stack gap={3} className="mt-2" direction="horizontal">
                                 <Image
@@ -122,11 +150,11 @@ const AppointmentList = () => {
                                 <div>
                                   <b>BS. {appointment.doctor.lastName} {appointment.doctor.firstName}</b>
                                   <div>
-                                    <i class="bi bi-envelope"> </i>
+                                    <i className="bi bi-envelope"> </i>
                                     {appointment.doctor.email}
                                   </div>
                                   <div>
-                                    <i class="bi bi-telephone"> </i>
+                                    <i className="bi bi-telephone"> </i>
                                     {appointment.doctor.phone}
                                   </div>
                                 </div>
@@ -135,8 +163,8 @@ const AppointmentList = () => {
                           </Col>
                           :
                           <Col>
-                            <Alert variant="warning">
-                              <i class="bi bi-person-fill"></i>
+                            <Alert variant={STATUS_MAP[appointment.status]?.variant || "secondary"}>
+                              <i className="bi bi-person-fill"></i>
                               <b>Bệnh nhân</b>
                               <Stack gap={3} className="mt-2" direction="horizontal">
                                 <Image
@@ -149,11 +177,11 @@ const AppointmentList = () => {
                                 <div>
                                   <b>{appointment.patient.lastName} {appointment.patient.firstName}</b>
                                   <div>
-                                    <i class="bi bi-envelope"> </i>
+                                    <i className="bi bi-envelope"> </i>
                                     {appointment.patient.email}
                                   </div>
                                   <div>
-                                    <i class="bi bi-telephone"> </i>
+                                    <i className="bi bi-telephone"> </i>
                                     {appointment.patient.phone}
                                   </div>
                                 </div>
@@ -166,19 +194,32 @@ const AppointmentList = () => {
 
                     <Stack direction="horizontal" gap={2}>
                       <div>Ngày tạo lịch hẹn: {appointment.createdAt}</div>
-                      <Button
-                        className="ms-auto"
-                        variant="outline-danger"
-                        disabled={STATUS_MAP[appointment.status] == STATUS_MAP.completed}
-                      >
-                        Huỷ lịch hẹn
-                      </Button>
-                      <Button
-                        onClick={() => navigate(`/appointments/${appointment.id}`)}
-                      >
-                        Xem chi tiết
-                      </Button>
-
+                      <ButtonGroup className="ms-auto">
+                        <Button
+                          variant="outline-primary"
+                          onClick={() => navigate(`/appointments/${appointment.id}`)}
+                        >
+                          Xem chi tiết
+                        </Button>
+                        <DropdownButton align="end" as={ButtonGroup} title="" id="bg-nested-dropdown">
+                          <Dropdown.Item
+                            eventKey="1"
+                            disabled={STATUS_MAP[appointment.status] == STATUS_MAP.completed}
+                          >
+                            Đổi lịch hẹn
+                          </Dropdown.Item>
+                          <Dropdown.Item
+                            eventKey="2"
+                            disabled={STATUS_MAP[appointment.status] == STATUS_MAP.completed}
+                            onClick={() => {
+                              setSelectedAppointment(appointment);
+                              setShowCancelModal(true);
+                            }}
+                          >
+                            Huỷ lịch hẹn
+                          </Dropdown.Item>
+                        </DropdownButton>
+                      </ButtonGroup>
                     </Stack>
                   </Stack>
                 </Card.Body>
@@ -186,6 +227,29 @@ const AppointmentList = () => {
             ))}
           </Stack>
         )}
+
+      {/* Modal xác nhận huỷ lịch hẹn */}
+      <Modal show={showCancelModal} onHide={() => setShowCancelModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Xác nhận huỷ lịch hẹn</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {cancelError && <Alert variant="danger">{cancelError}</Alert>}
+          Bạn có chắc chắn muốn huỷ lịch hẹn này không?
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowCancelModal(false)}>
+            Đóng
+          </Button>
+          <Button
+            variant="danger"
+            onClick={handleCancelAppointment}
+            disabled={cancelLoading}
+          >
+            {cancelLoading ? "Đang huỷ..." : "Xác nhận huỷ"}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 };

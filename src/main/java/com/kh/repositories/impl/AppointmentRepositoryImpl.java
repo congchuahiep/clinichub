@@ -136,4 +136,43 @@ public class AppointmentRepositoryImpl extends AbstractRepository<Appointment, L
                 .getResultList();
     }
 
+    @Override
+    public void updateExpiredAppointments() {
+        Session session = getCurrentSession();
+        String hql = """
+                 UPDATE Appointment a
+                 SET status = 'cancelled'
+                 WHERE status = 'scheduled'
+                             AND a.appointmentDate < CURRENT_DATE()
+                             OR (a.appointmentDate =
+                     CURRENT_DATE()\s
+                 AND
+                     FUNCTION('TIME',
+                             CASE a.timeSlot
+                         WHEN
+                     'SLOT_1' THEN '07:30:00'
+                         WHEN 'SLOT_2' THEN '08:00:00'
+                         WHEN 'SLOT_3' THEN '08:30:00'
+                         WHEN 'SLOT_4' THEN '09:00:00'
+                         WHEN 'SLOT_5' THEN '09:30:00'
+                         WHEN 'SLOT_6' THEN '10:00:00'
+                         WHEN 'SLOT_7' THEN '10:30:00'
+                         WHEN 'SLOT_8' THEN '13:00:00'
+                         WHEN 'SLOT_9' THEN '13:30:00'
+                         WHEN 'SLOT_10' THEN '14:00:00'
+                         WHEN 'SLOT_11' THEN '14:30:00'
+                         WHEN 'SLOT_12' THEN '15:00:00'
+                         WHEN 'SLOT_13' THEN '15:30:00'
+                         WHEN 'SLOT_14' THEN '16:00:00'
+                         WHEN 'SLOT_15' THEN '16:30:00'
+                         WHEN 'SLOT_16' THEN '17:00:00'
+                     END) < CURRENT_TIME())
+
+                \s""";
+
+        session.createMutationQuery(hql)
+                .executeUpdate();
+    }
+
+
 }

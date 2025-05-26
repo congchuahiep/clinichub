@@ -120,7 +120,7 @@ const AppointmentDetail = () => {
         </Card.Header>
         <Card.Body>
           {user && user?.userRole == "PATIENT" ?
-            <Alert variant="success" className="h-100">
+            <Alert variant={STATUS_MAP[appointment.status]?.variant || "secondary"} className="h-100">
               <i className="bi bi-clipboard2-pulse-fill"></i> <b>Bác sĩ</b>
               <Stack gap={3} className="mt-2" direction="horizontal">
                 <Image
@@ -142,7 +142,7 @@ const AppointmentDetail = () => {
               </Stack>
             </Alert>
             :
-            <Alert variant="warning" className="h-100">
+            <Alert variant={STATUS_MAP[appointment.status]?.variant || "secondary"} className="h-100">
               <i className="bi bi-person-fill"></i> <b>Bệnh nhân</b>
               <Stack gap={3} className="mt-2" direction="horizontal">
                 <Image

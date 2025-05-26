@@ -3,9 +3,6 @@ package com.kh.configs;
 import java.util.Properties;
 import javax.sql.DataSource;
 
-import static org.hibernate.cfg.JdbcSettings.DIALECT;
-import static org.hibernate.cfg.JdbcSettings.SHOW_SQL;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,9 +13,11 @@ import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import static org.hibernate.cfg.JdbcSettings.*;
+
 /**
  * Cấu hình Hibernate
- * 
+ *
  * @author admin
  */
 @Configuration
@@ -35,7 +34,7 @@ public class HibernateConfigs {
     @Bean
     public LocalSessionFactoryBean getSessionFactory() {
         LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
-        sessionFactory.setPackagesToScan(new String[] { "com.kh.pojo" });
+        sessionFactory.setPackagesToScan(new String[]{"com.kh.pojo"});
         sessionFactory.setDataSource(dataSource());
         sessionFactory.setHibernateProperties(hibernateProperties());
         return sessionFactory;
@@ -58,6 +57,8 @@ public class HibernateConfigs {
         Properties props = new Properties();
         props.put(DIALECT, env.getProperty("hibernate.dialect"));
         props.put(SHOW_SQL, env.getProperty("hibernate.showSql"));
+        props.put(JDBC_TIME_ZONE, "UTC");
+        props.put("hibernate.jpa.compliance.global_id_generators", "false");
         return props;
     }
 

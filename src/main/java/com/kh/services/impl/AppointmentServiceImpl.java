@@ -14,12 +14,18 @@ import com.kh.repositories.UserRepository;
 import com.kh.services.AppointmentService;
 
 import java.nio.file.AccessDeniedException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import com.kh.services.EmailService;
 import com.kh.utils.DateUtils;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -190,4 +196,48 @@ public class AppointmentServiceImpl implements AppointmentService {
         return dto;
     }
 
+    @Transactional
+    @Override
+    public void cancelAppointment(Long appointmentId, String username)
+            throws AccessDeniedException, NoSuchElementException, IllegalStateException {
+
+        // Lấy thông tin lịch hẹn
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy lịch hẹn!"));
+
+        // Kiểm tra quyền - chỉ cho phép bệnh nhân sở hữu hoặc bác sĩ được huỷ
+        User currentUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy người dùng!"));
+
+        boolean isOwner = appointment.getPatientId().getId().equals(currentUser.getId());
+        boolean isDoctor = currentUser.getRole() == UserRole.DOCTOR
+                && appointment.getDoctorId().getId().equals(currentUser.getId());
+
+        if (!isOwner && !isDoctor) {
+            throw new AccessDeniedException("Bạn không có quyền huỷ lịch hẹn này!");
+        }
+
+        // Kiểm tra thời gian - chỉ được huỷ trước 24h
+        // Chuyển Date sang LocalDate
+        LocalDate appointmentDate = appointment.getAppointmentDate().toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
+
+        // Chuyển String time sang LocalTime
+        LocalTime appointmentTime = LocalTime.parse(
+                appointment.getTimeSlot().getStartTime(),
+                DateTimeFormatter.ofPattern("HH:mm"));
+
+        // Kết hợp thành LocalDateTime
+        LocalDateTime appointmentDateTime = LocalDateTime.of(appointmentDate, appointmentTime);
+
+        if (LocalDateTime.now().plusHours(24).isAfter(appointmentDateTime)) {
+            throw new IllegalStateException(
+                    "Không thể huỷ lịch hẹn trong vòng 24 giờ trước giờ khám!");
+        }
+
+        // Cập nhật trạng thái
+        appointment.setStatus("cancelled");
+        appointmentRepository.update(appointment);
+    }
 }

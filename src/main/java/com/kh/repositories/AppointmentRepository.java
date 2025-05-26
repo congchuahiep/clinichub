@@ -26,4 +26,5 @@ public interface AppointmentRepository extends GenericRepository<Appointment, Lo
 
     List<Appointment> findAppointmentsBetweenDates(Date from, Date to);
 
+    void updateExpiredAppointments();
 }

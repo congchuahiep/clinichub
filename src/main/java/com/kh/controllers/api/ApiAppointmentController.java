@@ -160,4 +160,33 @@ public class ApiAppointmentController {
         }
     }
 
+    /**
+     * Endpoint: {@code /api/secure/appointments/{id}/cancel}
+     *
+     * <p>
+     * Cho phép bệnh nhân sở hữu lịch khám hoặc bác sĩ huỷ lịch hẹn.
+     * Chỉ được huỷ trước thời điểm hẹn 24 giờ
+     * </p>
+     */
+    @PostMapping("/secure/appointments/{id}/cancel")
+    public ResponseEntity<?> cancelAppointment(
+            @PathVariable("id") Long appointmentId,
+            Authentication auth
+    ) {
+        try {
+            appointmentService.cancelAppointment(appointmentId, auth.getName());
+            return ResponseEntity.ok(Collections.singletonMap("message", "Huỷ lịch hẹn thành công"));
+
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Collections.singletonMap("error", e.getMessage()));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Collections.singletonMap("error", e.getMessage()));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Collections.singletonMap("error", "Không tìm thấy lịch hẹn!"));
+        }
+    }
+
 }

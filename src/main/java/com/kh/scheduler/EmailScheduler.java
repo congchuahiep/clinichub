@@ -1,4 +1,4 @@
-package com.kh.utils;
+package com.kh.scheduler;
 
 import com.kh.dtos.EmailDTO;
 import com.kh.pojo.Appointment;

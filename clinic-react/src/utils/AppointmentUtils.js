@@ -7,6 +7,7 @@ export const SLOT_LABELS = [
 
 export const STATUS_MAP = {
   scheduled: { label: "Đã đặt", variant: "secondary" },
+  rescheduled: { label: "Đã đặt", variant: "warning" },
   completed: { label: "Hoàn thành", variant: "success" },
   cancelled: { label: "Đã huỷ", variant: "danger" }
 };
