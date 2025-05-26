@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Alert, Badge, Card, Container, Image, Spinner, Stack, Modal, Form, Button } from "react-bootstrap";
+import { Alert, Badge, Card, Container, Image, Spinner, Stack, Modal, Form, Button, Table } from "react-bootstrap";
 import cookie from "react-cookies";
 import { useNavigate, useParams } from "react-router-dom";
 import { authApis, endpoints } from "../configs/APIs";
@@ -35,9 +35,15 @@ const AppointmentDetail = () => {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
+  const [healthProfile, setHealthProfile] = useState(null);
+  const [healthProfileEditMode, setHealthProfileEditMode] = useState(false);
+  const [healthProfileForm, setHealthProfileForm] = useState({});
+  const [savingHealthProfile, setSavingHealthProfile] = useState(false);
+  const [saveError, setSaveHealthProfileError] = useState("");
+  const [saveHealthProfileSuccess, setSaveHealthProfileSuccess] = useState(false);
+
   useEffect(() => {
     const loadDiseases = async () => {
-
     }
   }, [])
 
@@ -46,9 +52,17 @@ const AppointmentDetail = () => {
       setLoading(true);
       setErrorMessage("");
       try {
-        const res = await authApis().get(endpoints["appointment-detail"](id));
-        setAppointment(res.data);
+        const appointmentResponse = await authApis().get(endpoints["appointment-detail"](id));
+        const appointmentData = appointmentResponse.data
+        setAppointment(appointmentResponse.data);
+
+        if (user.userRole == "DOCTOR") {
+          const healthProfileResponse = await authApis().get(endpoints["doctor-health-profile"](appointmentData.patient.id));
+          console.log(healthProfileResponse);
+          setHealthProfileForm(healthProfileResponse.data);
+        }
       } catch (e) {
+        console.log(e);
         setErrorMessage("Không thể tải chi tiết lịch khám!");
       } finally {
         setLoading(false);
@@ -77,10 +91,32 @@ const AppointmentDetail = () => {
     }
   };
 
+  const handleHealthChange = (field, value) => {
+    setHealthProfileForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSave = async () => {
+    setSavingHealthProfile(true);
+    setSaveHealthProfileError("");
+    setSaveHealthProfileSuccess(false);
+    try {
+      await authApis().put(endpoints["doctor-health-profile"](appointment.patient.id), healthProfileForm);
+      setHealthProfile({ ...healthProfileForm });
+      setHealthProfileEditMode(false);
+      setSaveHealthProfileSuccess(true);
+    } catch (e) {
+      console.log(e);
+      setSaveHealthProfileError("Lưu thông tin thất bại!");
+    } finally {
+      setSavingHealthProfile(false);
+      setTimeout(() => setSaveHealthProfileSuccess(false), 2000);
+    }
+  };
+
   if (loading) {
     return (
       <Container className="py-5 text-center">
-        <Spinner animation="border" variant="primary" />
+        <Spinner variant="primary" />
       </Container>
     );
   }
@@ -120,7 +156,7 @@ const AppointmentDetail = () => {
         </Card.Header>
         <Card.Body>
           {user && user?.userRole == "PATIENT" ?
-            <Alert variant="success" className="h-100">
+            <Alert variant={STATUS_MAP[appointment.status]?.variant || "secondary"} className="h-100">
               <i className="bi bi-clipboard2-pulse-fill"></i> <b>Bác sĩ</b>
               <Stack gap={3} className="mt-2" direction="horizontal">
                 <Image
@@ -138,11 +174,19 @@ const AppointmentDetail = () => {
                   <div>
                     <i className="bi bi-telephone"></i> {doctor.phone}
                   </div>
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    className="mt-2"
+                    onClick={() => navigate(`/doctors/${doctor.id}`)}
+                  >
+                    Xem trang bác sĩ
+                  </Button>
                 </div>
               </Stack>
             </Alert>
             :
-            <Alert variant="warning" className="h-100">
+            <Alert variant={STATUS_MAP[appointment.status]?.variant || "secondary"} className="h-100">
               <i className="bi bi-person-fill"></i> <b>Bệnh nhân</b>
               <Stack gap={3} className="mt-2" direction="horizontal">
                 <Image
@@ -162,6 +206,119 @@ const AppointmentDetail = () => {
                   </div>
                 </div>
               </Stack>
+              <p className="mb-2 mt-4"><b>Hồ sơ sức khoẻ</b></p>
+              <Card>
+                <Card.Body>
+                  <Table bordered>
+                    <tbody>
+                      <tr>
+                        <td><b>Tiền sử bệnh</b></td>
+                        <td>
+                          <Form.Control
+                            as="textarea"
+                            rows={1}
+                            value={healthProfileForm.medicalHistory || ""}
+                            variant=""
+                            disabled={!healthProfileEditMode}
+                            placeholder="Nhập tiền sử bệnh (nếu có)..."
+                            onChange={e => handleHealthChange("medicalHistory", e.target.value)}
+                          />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td><b>Dị ứng</b></td>
+                        <td>
+                          <Form.Control
+                            as="textarea"
+                            rows={1}
+                            value={healthProfileForm.allergies || ""}
+                            disabled={!healthProfileEditMode}
+                            placeholder="Nhập dị ứng (nếu có)..."
+                            onChange={e => handleHealthChange("allergies", e.target.value)}
+                          />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td><b>Bệnh mãn tính</b></td>
+                        <td>
+                          <Form.Control
+                            as="textarea"
+                            rows={1}
+                            value={healthProfileForm.chronicConditions || ""}
+                            disabled={!healthProfileEditMode}
+                            placeholder="Nhập bệnh mãn tính (nếu có)..."
+                            onChange={e => handleHealthChange("chronicConditions", e.target.value)}
+                          />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td><b>Cân nặng (kg)</b></td>
+                        <td>
+                          <Form.Control
+                            type="number"
+                            value={healthProfileForm.weight || ""}
+                            disabled={!healthProfileEditMode}
+                            placeholder="Nhập cân nặng..."
+                            onChange={e => handleHealthChange("weight", e.target.value)}
+                          />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td><b>Chiều cao (cm)</b></td>
+                        <td>
+                          <Form.Control
+                            type="number"
+                            value={healthProfileForm.height || ""}
+                            disabled={!healthProfileEditMode}
+                            placeholder="Nhập chiều cao..."
+                            onChange={e => handleHealthChange("height", e.target.value)}
+                          />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td><b>Huyết áp</b></td>
+                        <td>
+                          <Form.Control
+                            value={healthProfileForm.bloodPressure || ""}
+                            disabled={!healthProfileEditMode}
+                            placeholder="Nhập huyết áp..."
+                            onChange={e => handleHealthChange("bloodPressure", e.target.value)}
+                          />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td><b>Đường huyết</b></td>
+                        <td>
+                          <Form.Control
+                            value={healthProfileForm.bloodSugar || ""}
+                            disabled={!healthProfileEditMode}
+                            placeholder="Nhập đường huyết..."
+                            onChange={e => handleHealthChange("bloodSugar", e.target.value)}
+                          />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </Table>
+                  <div className="d-flex justify-content-end gap-2">
+                    {!healthProfileEditMode ? (
+                      <Button variant="primary" onClick={() => setHealthProfileEditMode(true)}>
+                        Chỉnh sửa
+                      </Button>
+                    ) : (
+                      <>
+                        <Button variant="secondary" onClick={() => { setHealthProfileEditMode(false); setHealthProfileForm(healthProfile); }}>
+                          Huỷ
+                        </Button>
+                        <Button variant="success" onClick={handleSave} disabled={savingHealthProfile}>
+                          {savingHealthProfile ? "Đang lưu..." : "Lưu"}
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                  {saveError && <Alert variant="danger" className="mt-2">{saveError}</Alert>}
+                  {saveHealthProfileSuccess && <Alert variant="success" className="mt-2">Lưu thành công!</Alert>}
+                </Card.Body>
+              </Card>
             </Alert>
           }
           <hr />
@@ -280,20 +437,38 @@ const AppointmentDetail = () => {
           )}
           <hr />
 
-          <h5>Hồ sơ khám bệnh</h5>
+          <h5>Chẩn đoán</h5>
           {medicalRecord ? (
-            <Card className="mb-2">
-              <Card.Body>
-                <div><b>Bệnh:</b> {medicalRecord.diseaseName}</div>
-                <div><b>Chẩn đoán:</b> {medicalRecord.diagnosis}</div>
-                <div><b>Ngày chẩn đoán:</b> {medicalRecord.diagnosisDate ? new Date(medicalRecord.diagnosisDate).toLocaleDateString() : ""}</div>
-                <div><b>Kê đơn:</b> {medicalRecord.prescriptions}</div>
-                <div><b>Kết quả xét nghiệm:</b> {medicalRecord.testResults || "Không có"}</div>
-                <div><b>Ghi chú:</b> {medicalRecord.notes}</div>
-              </Card.Body>
-            </Card>
+            <Table bordered>
+              <tbody>
+                <tr>
+                  <td><b>Bệnh</b></td>
+                  <td>{medicalRecord.diseaseName}</td>
+                </tr>
+                <tr>
+                  <td><b>Chẩn đoán</b></td>
+                  <td>{medicalRecord.diagnosis}</td>
+                </tr>
+                <tr>
+                  <td><b>Ngày chẩn đoán</b></td>
+                  <td>{medicalRecord.diagnosisDate ? new Date(medicalRecord.diagnosisDate).toLocaleDateString() : ""}</td>
+                </tr>
+                <tr>
+                  <td><b>Kê đơn</b></td>
+                  <td>{medicalRecord.prescriptions}</td>
+                </tr>
+                <tr>
+                  <td><b>Kết quả xét nghiệm</b></td>
+                  <td>{medicalRecord.testResults || "Không có"}</td>
+                </tr>
+                <tr>
+                  <td><b>Ghi chú</b></td>
+                  <td>{medicalRecord.notes}</td>
+                </tr>
+              </tbody>
+            </Table>
           ) : (
-            <Alert variant="secondary">Chưa có hồ sơ khám bệnh cho lịch hẹn này.</Alert>
+            <Alert variant="secondary">Chưa có chẩn đoán khám bệnh cho lịch hẹn này.</Alert>
           )}
         </Card.Body>
       </Card>

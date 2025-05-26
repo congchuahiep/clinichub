@@ -1,11 +1,10 @@
 package com.kh.configs;
 
 import java.util.Properties;
+import java.util.TimeZone;
 import javax.sql.DataSource;
 
-import static org.hibernate.cfg.JdbcSettings.DIALECT;
-import static org.hibernate.cfg.JdbcSettings.SHOW_SQL;
-
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,9 +15,11 @@ import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import static org.hibernate.cfg.JdbcSettings.*;
+
 /**
  * Cấu hình Hibernate
- * 
+ *
  * @author admin
  */
 @Configuration
@@ -29,13 +30,20 @@ public class HibernateConfigs {
     @Autowired
     private Environment env;
 
+    @PostConstruct
+    public void init() {
+        // Đặt default timezone cho JVM
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
+    }
+
+
     /**
      * Cấu hình getSessionFactory() để sản xuất các Session cho việc truy vấn
      */
     @Bean
     public LocalSessionFactoryBean getSessionFactory() {
         LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
-        sessionFactory.setPackagesToScan(new String[] { "com.kh.pojo" });
+        sessionFactory.setPackagesToScan(new String[]{"com.kh.pojo"});
         sessionFactory.setDataSource(dataSource());
         sessionFactory.setHibernateProperties(hibernateProperties());
         return sessionFactory;
@@ -58,6 +66,12 @@ public class HibernateConfigs {
         Properties props = new Properties();
         props.put(DIALECT, env.getProperty("hibernate.dialect"));
         props.put(SHOW_SQL, env.getProperty("hibernate.showSql"));
+
+        // Thêm các cấu hình timezone
+        props.setProperty("hibernate.jdbc.time_zone", "Asia/Ho_Chi_Minh");
+        props.setProperty("hibernate.connection.useTimezone", "true");
+        props.setProperty("hibernate.jpa.compliance.global_id_generators", "false");
+
         return props;
     }
 

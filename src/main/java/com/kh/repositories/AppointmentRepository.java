@@ -12,11 +12,17 @@ import java.util.Optional;
 
 public interface AppointmentRepository extends GenericRepository<Appointment, Long> {
 
+    List<AppointmentSlot> findDoctorTakenSlots(Long doctorId, Date date);
+
+    List<AppointmentSlot> findPatientTakenSlots(Long patientId, Date date);
+
     List<Appointment> findByPatientId(Long patientId, String status);
 
     List<Appointment> findByDoctorId(Long doctorId, String status);
 
     boolean isDoctorTimeSlotTaken(User doctor, Date date, AppointmentSlot slot);
+
+    boolean isPatientTimeSlotTaken(User patient, Date date, AppointmentSlot slot);
 
     boolean existsAppointmentBetweenDoctorAndPatient(Long doctorId, Long patientId);
 
@@ -31,4 +37,5 @@ public interface AppointmentRepository extends GenericRepository<Appointment, Lo
     Long countDistinctPatientsCompletedByQuarter(int year, int quarter);
 
     Long countDistinctPatientsCompleted();
+    void updateExpiredAppointments();
 }

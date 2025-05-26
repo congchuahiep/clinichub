@@ -2,6 +2,7 @@ package com.kh.controllers.api;
 
 import com.kh.dtos.AppointmentDTO;
 import com.kh.dtos.MedicalRecordDTO;
+import com.kh.enums.AppointmentSlot;
 import com.kh.enums.UserRole;
 import com.kh.services.AppointmentService;
 import com.kh.services.MedicalRecordService;
@@ -17,6 +18,7 @@ import java.nio.file.AccessDeniedException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -139,7 +141,7 @@ public class ApiAppointmentController {
 
     /**
      * Endpoint: {@code /api/secure/appointments/{id}}
-     *
+     * <p>
      * Xem chi tiết lịch khám
      */
     @GetMapping("/secure/appointments/{appointmentId}")
@@ -160,4 +162,95 @@ public class ApiAppointmentController {
         }
     }
 
+    /**
+     * Endpoint: {@code /api/secure/appointments/{id}/cancel}
+     *
+     * <p>
+     * Cho phép bệnh nhân sở hữu lịch khám hoặc bác sĩ huỷ lịch hẹn.
+     * Chỉ được huỷ trước thời điểm hẹn 24 giờ
+     * </p>
+     */
+    @PostMapping("/secure/appointments/{id}/cancel")
+    public ResponseEntity<?> cancelAppointment(
+            @PathVariable("id") Long appointmentId,
+            Authentication auth
+    ) {
+        try {
+            appointmentService.cancelAppointment(appointmentId, auth.getName());
+            return ResponseEntity.ok(Collections.singletonMap("message", "Huỷ lịch hẹn thành công"));
+
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Collections.singletonMap("error", e.getMessage()));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Collections.singletonMap("error", e.getMessage()));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Collections.singletonMap("error", "Không tìm thấy lịch hẹn!"));
+        }
+    }
+
+    @PostMapping("/secure/appointments/{id}/reschedule")
+    public ResponseEntity<?> rescheduleAppointment(
+            @PathVariable("id") Long appointmentId,
+            @RequestParam("newAppointmentDate") String newAppointmentDate,
+            @RequestParam("newTimeSlot") int newTimeSlot,
+            Authentication auth
+    ) {
+        try {
+            // Kiểm tra quyền truy cập và vai trò
+            securityUtils.requireRole(auth, UserRole.PATIENT);
+
+            // Parse ngày giờ từ string sang Date
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            Date newDate = dateFormat.parse(newAppointmentDate);
+
+            // Gọi service để đổi lịch hẹn
+            AppointmentDTO updatedAppointment = appointmentService.rescheduleAppointment(
+                    appointmentId,
+                    newDate,
+                    newTimeSlot,
+                    auth.getName()
+            );
+
+            return ResponseEntity.status(HttpStatus.OK).body(updatedAppointment);
+
+        } catch (ParseException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Collections.singletonMap("error", "Định dạng ngày không hợp lệ!"));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Collections.singletonMap("error", e.getMessage()));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Collections.singletonMap("error", e.getMessage()));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Collections.singletonMap("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/secure/appointments/taken-slots")
+    public ResponseEntity<?> findTakenSlots(
+            @RequestParam("doctorId") Long doctorId,
+            @RequestParam("date") String date,
+            Authentication auth
+    ) {
+        try {
+            securityUtils.requireRole(auth, UserRole.PATIENT);
+            Long patientId = securityUtils.getCurrentUserId(auth);
+
+            // Parse ngày giờ từ string sang Date
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+            List<AppointmentSlot> takenSlots = appointmentService.findTakenSlots(patientId, doctorId, dateFormat.parse(date));
+
+            return ResponseEntity.ok(takenSlots);
+
+        }  catch (ParseException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Collections.singletonMap("appointmentDatetime", "Định dạng ngày giờ không hợp lệ!"));
+        }
+    }
 }

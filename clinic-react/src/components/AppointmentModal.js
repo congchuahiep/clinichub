@@ -1,17 +1,25 @@
 import { useState, useEffect } from "react";
-import { Modal, Button, Form, Alert, Toast, ToastContainer } from "react-bootstrap";
+import { Modal, Button, Form, Alert, Toast, ToastContainer, ButtonGroup, ToggleButton } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import cookie from "react-cookies";
 import { authApis, endpoints } from "../configs/APIs";
-
-const SLOT_LABELS = [
-  "07:30 - 08:00", "08:00 - 08:30", "08:30 - 09:00", "09:00 - 09:30",
-  "09:30 - 10:00", "10:00 - 10:30", "10:30 - 11:00", "13:00 - 13:30",
-  "13:30 - 14:00", "14:00 - 14:30", "14:30 - 15:00", "15:00 - 15:30",
-  "15:30 - 16:00", "16:00 - 16:30", "16:30 - 17:00", "17:00 - 17:30"
-];
+import { SLOT_LABELS } from "../utils/AppointmentUtils";
 
 const AppointmentModal = ({ show, onHide, doctorName, doctorId }) => {
+
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+
+  const oneMonthLater = new Date(today);
+  oneMonthLater.setDate(today.getDate() + 30); // đơn giản, không cần check tháng
+
+  // Định dạng YYYY-MM-DD
+  const formatDate = (date) => date.toISOString().split('T')[0];
+  const minDate = formatDate(tomorrow);
+  const maxDate = formatDate(oneMonthLater);
+
+  const navigate = useNavigate();
 
   const [appointment, setAppointment] = useState({
     doctorName: doctorName || "",
@@ -23,9 +31,11 @@ const AppointmentModal = ({ show, onHide, doctorName, doctorId }) => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const navigate = useNavigate();
 
   const [showToast, setShowToast] = useState(false);
+
+  const [selectedDate, setSelectedDate] = useState(today);
+  const [takenSlots, setTakenSlots] = useState([]);
 
   // Reset form khi doctorId hoặc show thay đổi
   useEffect(() => {
@@ -43,6 +53,31 @@ const AppointmentModal = ({ show, onHide, doctorName, doctorId }) => {
     setAppointment(prev => ({ ...prev, [field]: value }));
   };
 
+  const loadTakenSlots = async () => {
+    if (!doctorId || !selectedDate) {
+      return;
+    }
+
+    const params = {
+      doctorId: doctorId,
+      date: selectedDate
+    }
+
+    await authApis().get(endpoints["check-taken-slots"], { params })
+      .then((res) => {
+        console.log(res);
+        const slots = res.data.map(s => Number(s.replace("SLOT_", "")));
+        setTakenSlots(slots);
+      })
+      .catch((e) => {
+        console.log(e);
+      })
+  }
+
+  useEffect(() => {
+    loadTakenSlots();
+  }, [doctorId, selectedDate]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!cookie.load("token")) {
@@ -57,6 +92,8 @@ const AppointmentModal = ({ show, onHide, doctorName, doctorId }) => {
       formData.append("appointmentDate", appointment.appointmentDate);
       formData.append("timeSlot", appointment.timeSlot);
       formData.append("note", appointment.note);
+
+      console.log(formData.get("doctorId"));
 
       await authApis().post(endpoints.appointments, formData);
       onHide();
@@ -89,23 +126,37 @@ const AppointmentModal = ({ show, onHide, doctorName, doctorId }) => {
                 type="date"
                 required
                 value={appointment.appointmentDate}
-                onChange={e => handleChange("appointmentDate", e.target.value)}
+                min={minDate}
+                max={maxDate}
+                onChange={e => {
+                  handleChange("appointmentDate", e.target.value)
+                  setSelectedDate(e.target.value)
+                }}
               />
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Ca khám</Form.Label>
-              <Form.Select
-                required
-                value={appointment.timeSlot}
-                onChange={e => handleChange("timeSlot", e.target.value)}
-              >
-                <option value="">Chọn ca khám</option>
+              <ButtonGroup className="d-flex flex-wrap gap-2">
                 {SLOT_LABELS.map((label, idx) => (
-                  <option key={idx + 1} value={idx + 1}>
+                  <ToggleButton
+                    key={idx + 1}
+                    id={`slot-${idx + 1}`}
+                    type="radio"
+                    variant={takenSlots.includes(idx + 1) ? "outline-secondary" : "outline-primary"}
+                    name="timeSlot"
+                    value={idx + 1}
+                    checked={appointment.timeSlot === (idx + 1).toString()}
+                    onChange={e => handleChange("timeSlot", e.currentTarget.value)}
+                    style={{ borderRadius: 5 }}
+                    disabled={takenSlots.includes(idx + 1)}
+                  >
                     {label}
-                  </option>
+                  </ToggleButton>
                 ))}
-              </Form.Select>
+                <Form.Text id="passwordHelpBlock" muted>
+                  Các ca khám bị mờ nghĩa rằng bạn hoặc bác sĩ đang bận lịch khám khác vào ca này
+                </Form.Text>
+              </ButtonGroup>
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Ghi chú</Form.Label>
@@ -128,9 +179,9 @@ const AppointmentModal = ({ show, onHide, doctorName, doctorId }) => {
           </Form>
         </Modal.Body>
       </Modal>
-      <ToastContainer position="top-end" className="p-3">
+      <ToastContainer position="bottom-end" className="p-3" style={{ position: "fixed" }}>
         <Toast
-          bg="success"
+          bg=""
           onClose={() => setShowToast(false)}
           show={showToast}
           delay={3000}
@@ -139,8 +190,8 @@ const AppointmentModal = ({ show, onHide, doctorName, doctorId }) => {
           <Toast.Header>
             <strong className="me-auto">Thông báo</strong>
           </Toast.Header>
-          <Toast.Body className="text-white">
-            Đặt lịch thành công!
+          <Toast.Body>
+            ✅ Đặt lịch thành công!
           </Toast.Body>
         </Toast>
       </ToastContainer>
