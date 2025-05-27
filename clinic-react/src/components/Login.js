@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Alert, Button, Card, Form, Spinner } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../configs/AuthProvider";
 
 const Login = () => {
@@ -13,6 +13,10 @@ const Login = () => {
     field: "password",
     type: "password"
   }];
+
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const msg = params.get("msg");
 
   const [user, setUser] = useState({});
   const { login } = useAuth();
@@ -48,6 +52,7 @@ const Login = () => {
       <Card.Body>
         <h3 className="text-center mt-4 mb-4">Đăng nhập</h3>
         {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
+        {msg && <Alert variant="info">{msg}</Alert>}
         <Form onSubmit={handleLogin}>
           {info.map(i =>
             <Form.Control
